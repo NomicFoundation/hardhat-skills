@@ -1,0 +1,15 @@
+{
+  "name": "hardhat-skills",
+  "version": "1.0.0",
+  "description": "Agent skills for Hardhat 3 projects",
+  "scripts": {
+    "prettier": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "Nomic Foundation",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.2",
+  "devDependencies": {
+    "prettier": "^3.8.3"
+  }
+}
