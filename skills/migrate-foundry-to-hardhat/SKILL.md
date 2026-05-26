@@ -1,19 +1,21 @@
 ---
-name: dry-run-migrate-foundry-to-hh3
-description: Dry-run migration of a Solidity project from Foundry to Hardhat 3.
+name: migrate-foundry-to-hardhat
+description: Migrate a Solidity project from Foundry to Hardhat 3. Maps `foundry.toml` to `hardhat.config.ts`, converts dependencies and imports, gets compilation and Solidity tests passing, and produces a migration report with feature-parity gaps and a cleanup checklist.
 disable-model-invocation: true
 argument-hint: "[update | optional notes about the project]"
 ---
 
-# Dry-run migrate Foundry project to Hardhat 3
+# Migrate Foundry project to Hardhat 3
 
 **If the argument is `update`, skip to the [Update an existing migration](#update-an-existing-migration) section below.**
 
-The goal is to get Hardhat compilation and Solidity tests passing, or identify any blockers and missing features. This involves config mapping, dependency conversion, import fixes, compilation, and test verification.
+The goal is to get Hardhat compilation and Solidity tests passing, identify any blockers and missing features, and leave the user with a clear cleanup checklist for the original Foundry files. This involves config mapping, dependency conversion, import fixes, compilation, and test verification.
 
-**Important:** Identifying blockers and missing Hardhat features relative to Forge is a primary goal of this dry run. Do not overlook or guess at feature mappings. If a Forge feature has no clear Hardhat equivalent, do not silently skip it — leave a TODO comment in the config or code, link to a tracking issue if one exists, and flag it in the final migration report.
+**Important:** Identifying blockers and missing Hardhat features relative to Forge is a primary goal of this migration. Do not overlook or guess at feature mappings. If a Forge feature has no clear Hardhat equivalent, do not silently skip it — leave a TODO comment in the config or code, link to a tracking issue if one exists, and flag it in the final migration report.
 
-**Dry-run preservation:** Do NOT delete `foundry.toml`, `foundry.lock`, or existing Forge-based scripts in `package.json`. This is a dry-run — both toolchains must coexist. Add Hardhat scripts alongside existing ones using a `-hardhat` suffix.
+**Foundry file preservation:** Do NOT delete `foundry.toml`, `foundry.lock`, `remappings.txt`, `lib/`, or `.gas-snapshot` during the migration. The user needs them to cross-check results against Forge and roll back if needed. The final migration report contains a **Foundry cleanup checklist** that lists which files the user can delete once they've verified Hardhat works end-to-end — the user actions that checklist manually.
+
+For `package.json` scripts: **replace** the convertible `forge`-based scripts (`test`, `build`, `coverage`, `snapshot`, `snapshot:check`) with their Hardhat equivalents under the same script name. **Leave Forge-only scripts intact** (e.g., `forge script`, `forge bind`, `forge verify-contract`) — they continue to work as long as Foundry is installed, and the report lists them as Foundry-only gaps the user must address before deleting `foundry.toml`.
 
 Follow these steps in order. Do not skip ahead — each step depends on the previous one succeeding.
 
@@ -58,18 +60,19 @@ Edit `package.json`:
 - Add `"hardhat": "^<latest-version>"` to `devDependencies`, using the version fetched above.
 - Add `"@nomicfoundation/hardhat-verify": "^3.0.11"` to `devDependencies` (if `[etherscan]` section exists)
 - Ensure the top-level field `"type": "module"` is set. **Note:** This switches the project to ESM, which is required by Hardhat 3. If the project has existing CommonJS files (`.js` with `require()`), this may break them — flag it to the user if so.
-- Keep existing `forge`-based scripts intact. Add Hardhat equivalents alongside them using a `-hardhat` suffix. For Forge scripts that have no Hardhat equivalent, do not add a `-hardhat` variant.
+- **Replace** the convertible `forge`-based scripts (`test`, `build`, `coverage`, `snapshot`, `snapshot:check`) with their Hardhat equivalents under the same script name — do NOT add a parallel `-hardhat`-suffixed entry. The original Forge commands remain recoverable from git history.
+- **Leave Forge-only scripts intact** (e.g., `forge script`, `forge bind`, `forge verify-contract`, custom `forge` invocations). They continue to work as long as Foundry is installed; the migration report lists them as Foundry-only gaps the user must address before deleting `foundry.toml`.
 - If the project has **no Forge-related scripts** (no `scripts` section, or only non-Forge scripts like `lint`, `prettier`), do **not** add any Hardhat scripts to `package.json`.
 
-Common script mappings:
+Common script replacements (replace in-place under the same key):
 
-| Existing Foundry script | Hardhat script to add alongside |
+| Existing Foundry script | Replace with |
 | --- | --- |
-| `"test": "forge test"` | `"test-hardhat": "npx hardhat test solidity"` |
-| `"build": "forge build"` | `"build-hardhat": "npx hardhat compile"` |
-| `"coverage": "forge coverage ..."` | `"coverage-hardhat": "npx hardhat test solidity --coverage"` |
-| `"snapshot": "forge snapshot ..."` | `"snapshot-hardhat": "npx hardhat test solidity --snapshot"` |
-| `"snapshot:check": "forge snapshot --check ..."` | `"snapshot-check-hardhat": "npx hardhat test solidity --snapshot-check"` |
+| `"test": "forge test"` | `"test": "npx hardhat test solidity"` |
+| `"build": "forge build"` | `"build": "npx hardhat compile"` |
+| `"coverage": "forge coverage ..."` | `"coverage": "npx hardhat test solidity --coverage"` |
+| `"snapshot": "forge snapshot ..."` | `"snapshot": "npx hardhat test solidity --snapshot"` |
+| `"snapshot:check": "forge snapshot --check ..."` | `"snapshot:check": "npx hardhat test solidity --snapshot-check"` |
 
 **Note on coverage:** Hardhat 3 has built-in coverage support (no plugin needed). The `--coverage` flag produces LCOV (`coverage/lcov.info`) and HTML (`coverage/html/index.html`) reports. Reference: https://hardhat.org/docs/tutorial/coverage
 
@@ -435,6 +438,7 @@ If tests fail:
      - Which test(s) fail (file, contract, function name)
      - Suggested fix direction for the EDR team (reference Foundry's equivalent implementation if helpful)
      - The available workaround, if any — plus an explicit note stating the workaround is **not applied** and why (the test code is correct; applying it would mask the bug and add unnecessary boilerplate)
+   - **This file is a draft for the user to file as a GitHub issue** at [NomicFoundation/hardhat](https://github.com/NomicFoundation/hardhat/issues) or [NomicFoundation/edr](https://github.com/NomicFoundation/edr/issues), depending on where the root cause lies. The skill produces the report locally; the user decides whether and where to file it upstream. The migration report references it and surfaces filing as the user's next step — do not assume an upstream issue exists yet.
    - Leave the failing tests as-is in the codebase. Do not comment them out. They are genuine blockers.
 5. Fix other migration-related issues (import paths, config differences)
 6. For real test failures unrelated to migration, flag them to the user
@@ -444,7 +448,7 @@ If tests fail:
 
 - `"call didn't revert at a lower depth than cheatcode call depth"` or `"reverted with an unrecognized custom error"` on tests using `vm.expectRevert` on internal/library calls → enable `test.solidity.allowInternalExpectRevert: true` in config (maps Foundry's `allow_internal_expect_revert`)
 - Gas-related failures, out-of-gas reverts, or unexpected reverts in large tests → check that `test.solidity.gasLimit` matches `foundry.toml`'s `gas_limit` (must be a bigint with `n` suffix)
-- `vm.envString: environment variable "X" not found` — tests that read env vars via `vm.envString()` or `vm.envOr()` in `setUp()` will fail if those vars aren't set. Fix: set the required env var in the Hardhat test script in `package.json` (e.g., `"test-hardhat": "MY_VAR=value npx hardhat test solidity"`)
+- `vm.envString: environment variable "X" not found` — tests that read env vars via `vm.envString()` or `vm.envOr()` in `setUp()` will fail if those vars aren't set. Fix: set the required env var in the Hardhat test script in `package.json` (e.g., `"test": "MY_VAR=value npx hardhat test solidity"`)
 
 When tests pass, **always show the full test output to the user** so they can verify the results themselves.
 
@@ -461,9 +465,10 @@ After compilation and tests complete (whether all pass or not), write the report
 3. **Hardhat / EDR Bug Reports** — only if bugs were found in `.claude/bugs/`
 4. **Workarounds Applied** — always included
    - Sub-section: **UnsupportedCheatcode errors** — only if test functions were commented out
-5. **Next Steps** — always included
+5. **Foundry Cleanup Checklist** — always included
+6. **Next Steps** — always included
 
-When conditional sections are omitted, renumber the remaining sections contiguously. For example, if there are no bug reports and no commented-out tests: 1. Test Count, 2. Feature Parity, 3. Workarounds, 4. Next Steps.
+When conditional sections are omitted, renumber the remaining sections contiguously. For example, if there are no bug reports and no commented-out tests: 1. Test Count, 2. Feature Parity, 3. Workarounds, 4. Foundry Cleanup Checklist, 5. Next Steps.
 
 ### Test count comparison
 
@@ -578,7 +583,7 @@ For each 🚩 **Gap** and ❌ **Bug**, populate the Workaround / Notes column wi
 
 **Only include this section if behavioral bugs were identified in Step 6 (item 4).** If no bugs were found (no files written to `.claude/bugs/`), omit this section entirely from the report.
 
-For each behavioral bug identified in Step 6 (item 4), reference the corresponding bug report file written to `.claude/bugs/`. Use the heading `## N. Hardhat / EDR Bug Reports` (where N is the next section number) — using both names since the culprit may be in Hardhat's test runner layer, EDR, or both.
+For each behavioral bug identified in Step 6 (item 4), reference the corresponding bug report file written to `.claude/bugs/`. These files are **drafts the user can file upstream** at [NomicFoundation/hardhat](https://github.com/NomicFoundation/hardhat/issues) or [NomicFoundation/edr](https://github.com/NomicFoundation/edr/issues) — the responsible layer depends on whether the root cause lies in Hardhat's test runner or in EDR. Use the heading `## N. Hardhat / EDR Bug Reports` (where N is the next section number).
 
 In the report:
 
@@ -588,6 +593,7 @@ In the report:
   - The exact failing tests (file, contract, function)
   - A link to the local bug report file
   - A note confirming the tests are **not** commented out — they are active blockers
+- End the section with a brief next-step nudge: filing each draft upstream is the fastest path to a fix. Until then the tests stay red.
 
 The verdict for any session that produces a bug report is **Failed**.
 
@@ -617,6 +623,23 @@ For each commented-out function, include:
 
 Each distinct cheatcode that causes commented-out tests must have a corresponding row in the **gap table** (section 2) — the UnsupportedCheatcode section provides the per-function detail.
 
+### Foundry cleanup checklist
+
+This section is the user's manual cleanup guide for the original Foundry files preserved during the migration. **Do NOT auto-delete anything** — present the list as a checklist the user actions themselves once they're confident Hardhat tests pass and they've cross-checked behavior against Forge.
+
+For each item below, state explicitly whether it is **safe to delete now**, **keep for now** (with the reason), or **delete after a specific follow-up** (with the follow-up named). Inspect the project state — do not write the bullet generically.
+
+- **`foundry.toml`** — safe to delete once the user confirms they no longer need to run `forge` commands. If any Forge-only `package.json` scripts were left intact (see Workarounds Applied), list them here and note that `foundry.toml` must stay until those scripts are addressed.
+- **`foundry.lock`** — same disposition as `foundry.toml`. Delete together.
+- **`remappings.txt`** — check the current contents. If every remapping is still required by Hardhat (e.g., absolute-import remappings added in Step 4, submodule remappings for `lib/`), keep it and say so. If it only contained Foundry-style remappings to `node_modules/` that Hardhat resolves natively, mark it deletable.
+- **`lib/`** — keep if any submodule dependencies were NOT replaced with npm packages (most projects). Only mark deletable if every submodule was migrated to an npm dependency.
+- **`.gas-snapshot`** — deletable once the user has regenerated snapshots via `npx hardhat test solidity --snapshot`. If the snapshot location was reconfigured, name the new path.
+- **`.github/workflows/*` and other CI files** — scan for steps that invoke `forge` (e.g., `forge install`, `forge test`, `forge build`). List the exact file and step name; the user updates them to call the replaced `package.json` scripts. Do not edit CI files automatically.
+- **Forge-only `package.json` scripts left intact** — list each one (e.g., `"deploy": "forge script ..."`) and the Forge feature it represents (deployment scripting, ABI binding, etc.). These block deleting `foundry.toml` until the user either ports them to a Hardhat equivalent or accepts that Foundry stays installed alongside Hardhat for those workflows.
+- **Foundry installation itself** (`foundryup`, the `forge` / `cast` / `anvil` binaries) — only mention this once every prior item in the checklist is resolved.
+
+If the verdict is anything other than **Successful**, prefix the section with a one-line warning that cleanup should wait until the listed blockers / gaps are addressed.
+
 ### Verdict header & next steps
 
 The report header (immediately below the title) must contain:
@@ -632,10 +655,10 @@ Verdict values:
 
 | Verdict | Emoji | Condition |
 | --- | --- | --- |
-| **Successful** | ✅ | Full feature parity, all tests pass, nothing commented out |
-| **Successful with gaps** | 🟡 | All tests pass, but some used Forge features have no Hardhat equivalent |
-| **Partial** | 🟡 | Tests pass but functions were commented out — coverage is reduced |
-| **Failed** | ❌ | Compilation or tests fail |
+| **Successful** | ✅ | Full feature parity, all tests pass, nothing commented out — the Foundry cleanup checklist has nothing left blocking deletion of `foundry.toml` |
+| **Successful with gaps** | 🟡 | All tests pass, but some used Forge features have no Hardhat equivalent (e.g., `forge script` left intact in `package.json`) — Foundry must stay installed for those workflows |
+| **Partial** | 🟡 | Tests pass but functions were commented out — coverage is reduced; the user should investigate before deleting Foundry files |
+| **Failed** | ❌ | Compilation or tests fail — the user should keep Foundry installed and the original config files in place until the blockers are resolved |
 
 Example header for a Failed result:
 
@@ -658,9 +681,11 @@ Example header for a Failed result:
 
 The final body section is **Next Steps** — it is always the last numbered section in the report. The verdict itself lives in the header, not here. This section contains a short numbered list of recommended actions, **ordered from most to least impact**. Each item must name the concrete action, state the impact justification (test count, severity, or workflow scope), and include a link where relevant. Three to five items is the target length — don't pad with low-impact items already covered by the gap table.
 
+For a Successful or Successful-with-gaps verdict, the top items typically come from the Foundry Cleanup Checklist (delete `foundry.toml`/`foundry.lock`, port remaining Forge-only scripts, update CI). For a Failed verdict or one with bug reports, the top items are addressing blockers and filing bug-report drafts upstream — cleanup waits.
+
 ## Update an existing migration
 
-This flow is triggered when the argument is `update`. It assumes a previous migration has already been completed — the project has `hardhat.config.ts`, the analysis file (`.claude/<project-name>-foundry-migration-analysis.md`), and the migration report (`.claude/<project-name>-hardhat-migration-report.md`).
+This flow is triggered when the argument is `update`. It assumes a previous migration has already been completed — the project has `hardhat.config.ts`, the analysis file (`.claude/<project-name>-foundry-migration-analysis.md`), and the migration report (`.claude/<project-name>-hardhat-migration-report.md`). The user may still have `foundry.toml` and other Foundry files around (kept intentionally — see the previous report's Foundry Cleanup Checklist), and the project's primary `package.json` scripts now run Hardhat.
 
 **Goal:** Bring the migration up to date — upgrade Hardhat, re-evaluate every gap/partial/bug in the report against the current Hardhat version, remove workarounds that are no longer needed, and regenerate the report.
 
@@ -748,7 +773,8 @@ Regenerate the migration report following the same structure as Step 7 of the or
 3. **Update the feature parity table** — reflect all changes from Update Step 4
 4. **Update workarounds applied** — remove entries for workarounds that were removed, add any new ones
 5. **Update UnsupportedCheatcode section** — remove entries for cheatcodes that are now supported, update counts
-6. **Update Next Steps** — re-prioritize based on current state
+6. **Re-evaluate the Foundry cleanup checklist** — if a gap or blocker that previously kept `foundry.toml`, `lib/`, or a Forge-only script in place has now been resolved, surface that explicitly in the updated checklist so the user knows they can delete it. Conversely, if Foundry files have already been deleted since the last run, mark those items as "already removed" rather than re-listing them as actionable.
+7. **Update Next Steps** — re-prioritize based on current state, including any cleanup items newly unblocked.
 
 ### Update Step 7: Update the analysis file
 
