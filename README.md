@@ -12,7 +12,7 @@ npx skills add nomicfoundation/hardhat-skills
 
 ### hardhat
 
-Core skill for any Hardhat 3 project. Covers testing, cheatcodes, the `network.create()` connection API, `networkHelpers`, and more.
+Core skill for any Hardhat 3 project. Covers testing (both Solidity & TS tests), cheatcodes, the `network.create()` connection API, `networkHelpers`, and more.
 
 ### hardhat-toolbox-viem
 
