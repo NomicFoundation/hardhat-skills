@@ -334,7 +334,7 @@ These foundry.toml settings and commands have no direct Hardhat equivalent. Leav
 | foundry.toml | Status |
 | --- | --- |
 | `dynamic_test_linking` | Foundry-only |
-| `gas_snapshot_check` / `[profile.gas]` | Supported (✅ Full) — `npx hardhat test solidity --snapshot` / `--snapshot-check`; gas values match Forge. **Caveat (not a gap):** Hardhat's whole-suite `.gas-snapshot` uses a `Contract#function` format incompatible with Forge's `Contract:function()` (by design), so `--snapshot-check` against a committed *Forge*-format `.gas-snapshot` errors with HHE803 — regenerate the baseline with `--snapshot`. See Update Step 5b "KEY FACT" and [hardhat#8357](https://github.com/NomicFoundation/hardhat/issues/8357). Docs: https://hardhat.org/docs/guides/testing/gas-snapshots |
+| `gas_snapshot_check` / `[profile.gas]` | Supported (✅ Full) — `npx hardhat test solidity --snapshot` / `--snapshot-check`; gas values match Forge. **Caveat (not a gap):** Hardhat's whole-suite `.gas-snapshot` uses a `Contract#function` format incompatible with Forge's `Contract:function()` (by design), so `--snapshot-check` against a committed _Forge_-format `.gas-snapshot` errors with HHE803 — regenerate the baseline with `--snapshot`. See Update Step 5b "KEY FACT" and [hardhat#8357](https://github.com/NomicFoundation/hardhat/issues/8357). Docs: https://hardhat.org/docs/guides/testing/gas-snapshots |
 | `[bind_json]` | 🟡 Partial — the `include` field has a direct Hardhat equivalent in `test.solidity.eip712Types.include` (added in Hardhat 3.5.0). Both tools require the user to point at the file(s) defining EIP-712 structs so `vm.eip712HashStruct` / `vm.eip712HashType` can resolve names. Hardhat does NOT emit a `JsonBindings.sol`-style helper file — if any Solidity file in the project imports `schema_*` constants or `serialize`/`deserialize` helpers from the generated file, that part has no Hardhat equivalent (grep for `JsonBindings` imports / `schema_` usage to confirm before classifying). See the "EIP-712 cheatcodes" reference section below. |
 | `[fmt]` | 🟡 Partial — `forge fmt` works standalone regardless of build tool; `prettier-plugin-solidity` is a mature alternative |
 | `[lint]` | Foundry-only (projects typically use prettier or solhint) |
@@ -514,7 +514,7 @@ Count the number of `function test*` declarations in `.t.sol` files under the te
 The section is split into two parts to keep width manageable:
 
 1. **Gaps, bugs & partial support** — a focused 4-column table for ❌ Bug, 🚩 Gap, and 🟡 Partial rows
-2. **Full parity** — a compact bullet list for ✅ Full features, followed by a "Features not used by this project" bullet list
+2. **Full parity** — a compact bullet list for ✅ Full features
 
 For each Forge feature **used by the project**, assess Hardhat 3 parity. Only include entries for features the project actually uses (check `foundry.toml`, `package.json` scripts, `script/` directory, test files).
 
@@ -548,7 +548,6 @@ To ensure consistent gap reporting across different repos, **always use the exac
 | `Deployment scripting` | Deployment/scripting via `.s.sol` files (`forge script`, `vm.startBroadcast()`). Also use this name for `vm.startBroadcast()` / `vm.stopBroadcast()` gaps — these cheatcodes only function inside `forge script` and are not a separate feature |
 | `ABI binding generation` | ABI binding generation (`forge bind --alloy`, etc.) |
 | `Gas snapshots` | Gas snapshots (`forge snapshot`, `gas_snapshot_check`, `.forge-snapshots/`). Hardhat equivalent: `--snapshot` / `--snapshot-check` CLI flags |
-| `Code coverage` | Code coverage (`forge coverage`, `--ir-minimum` flag; note: Hardhat 3 handles via-IR natively) |
 | `Inline test config` | Per-test overrides via `/// forge-config:` or `/// hardhat-config:` comments |
 | `Etherscan verification` | Contract verification via Etherscan (`[etherscan]` config) |
 | `Gas reports` | Gas reporting (`forge test --gas-report`, `gas_reports` in foundry.toml) |
@@ -578,7 +577,7 @@ The Impact cell must start with a severity word (**High** / **Medium** / **Low**
 
 #### Full parity list
 
-List ✅ Full features as a bullet list under the subheading `### Full parity`, preceded by the sentence "These features work equivalently in Hardhat 3:". Then add a **"Features not used by this project:"** bullet list for features the project doesn't use — do NOT add these as rows in the gap table.
+List ✅ Full features as a bullet list under the subheading `### Full parity`, preceded by the sentence "These features work equivalently in Hardhat 3:".
 
 Example:
 
@@ -589,10 +588,6 @@ These features work equivalently in Hardhat 3:
 
 - Solidity compilation (`forge build` → `npx hardhat compile`)
 - forge-std cheatcodes (`vm.*`) — general
-
-**Features not used by this project:**
-
-- Deployment scripting (`forge script` / `.s.sol`) — project has no `script/` directory
 ```
 
 If inline test config was detected in Step 1, check which inline settings the project uses and at what level (function vs contract). Inline config is 🟡 **Partial** if the project uses **contract-level** inline config (directives on contract definitions) — Hardhat only supports function-level; contract-level directives are silently ignored. The workaround is to set the value globally in `hardhat.config.ts`.
@@ -771,6 +766,7 @@ Go through **every row** in the existing report's feature parity table (gaps, bu
    **Uncommenting HARDHAT-SKIP blocks — use brace counting, not "stop at first `}`":** A naive procedure that strips the `// ` prefix from every line until it sees a closing brace at the function-definition indent will break when the function body has same-indent nested braces. This happens whenever an inner block (`if { ... }`, `for { ... }`, struct literal, etc.) was originally formatted at the same indent as the function declaration — common in auto-generated comment-out blocks where every body line is prefixed with a single `// ` without preserving relative indentation. The naive procedure stops at the inner block's closing brace, leaving the rest of the function commented and producing invalid Solidity.
 
    The correct algorithm: after the `// HARDHAT-SKIP:` header (and any optional `// See:` follow-up lines), uncomment every subsequent line that matches `<indent>//`. After uncommenting each line, strip string and comment content, then count `{` and `}` and track depth. Stop when depth has become positive (i.e., the function declaration's `{` was seen) and then returns to zero (the function's closing `}`). Quick sanity check after running: grep for any leftover lines matching `^<indent>// [a-z]` or `^<indent>// }` in the affected files — non-empty output indicates an incomplete uncomment.
+
 3. **If a gap is partially resolved** (e.g., new inline config settings added but not all), update the parity level and notes accordingly
 4. **If a gap remains unchanged**, keep it as-is
 
@@ -796,7 +792,7 @@ Go through **every row** in the existing report's feature parity table (gaps, bu
 Hardhat supports **both** (`--snapshot` / `--snapshot-check`) with **identical gas values**, but writes/reads the whole-suite file with a `Contract#function` separator where Forge uses `Contract:function()`, and does not read Forge's format by design. Decision rule:
 
 - A committed `forge snapshot`-generated `.gas-snapshot` makes `--snapshot-check` fail with **`HHE803: Invalid format in snapshot file .gas-snapshot`**. **The format error itself is NEVER the gap** — it's not a bug and not a 🚩 Gap; do not file a bug report over it.
-- But the HHE803 only means "couldn't parse the file" — it does **not** tell you the gas *values* agree. You must still compare values separately (Case 1 below shows how, via a separator-normalized diff): **values match → ✅ Full parity**; **values diverge → 🟡 Partial** (a genuine cross-toolchain accounting difference — that is the gap, not the format). Do not stamp ✅ Full off the back of HHE803 alone without checking values.
+- But the HHE803 only means "couldn't parse the file" — it does **not** tell you the gas _values_ agree. You must still compare values separately (Case 1 below shows how, via a separator-normalized diff): **values match → ✅ Full parity**; **values diverge → 🟡 Partial** (a genuine cross-toolchain accounting difference — that is the gap, not the format). Do not stamp ✅ Full off the back of HHE803 alone without checking values.
 - When ✅, add a Next-Steps item to regenerate the baseline once with `npx hardhat test solidity --snapshot` (rewrites `.gas-snapshot` in Hardhat's format), noting the two toolchains can't share the one file (hardcoded path, mutually unreadable formats — keep a per-toolchain baseline if both are needed).
 - The inline `snapshots/*.json` cheatcode files **are** cross-compatible, so `--snapshot-check` works normally against those.
 
@@ -805,7 +801,7 @@ Background and the proposal to relax Hardhat's reader to also accept `:` are tra
 **Detection.** First decide which of three cases applies:
 
 | State | Detection |
-|---|---|
+| --- | --- |
 | Cheatcodes used, baseline committed | Grep `.t.sol` files for `vm.snapshotGasLastCall`, `vm.startSnapshotGas`, `vm.stopSnapshotGas` (any match) **AND** one or more of: `.gas-snapshot` at project root, files matching the project's configured `snapshot_path`, a `snapshots/` directory with `.json` files, or any other snapshot output declared in `package.json` scripts (`forge snapshot --snap path/...`). |
 | Cheatcodes used, no baseline | Cheatcode grep matches but no snapshot files exist (fresh adoption, or snapshots are gitignored). |
 | Cheatcodes not used | No cheatcode grep matches. |
