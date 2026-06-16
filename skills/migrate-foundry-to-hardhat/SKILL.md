@@ -29,7 +29,7 @@ Before making changes, read and understand the existing project **thoroughly**:
 4. Identify the contract source directory (usually `src/` or `contracts/`)
 5. Identify the test directory (usually `test/` or `tests/`)
 6. Identify any scripts in `script/`
-7. Scan `.t.sol` files for **inline test config** — `forge-config:` directives in both line comments (`/// forge-config:`, `// forge-config:`) and block comments (`/** forge-config: ... */`). Since Hardhat 3.3.0, inline config is supported at the **function level** and `forge-config:` is backwards-compatible ([docs](https://hardhat.org/docs/guides/testing/inline-configuration)). However, Hardhat only supports **function-level** inline config — **contract-level** inline config (directives placed on the contract definition rather than individual functions) is NOT supported. For contract-level configs, the workaround is to set the value globally in `hardhat.config.ts`. Additionally, some settings are **not yet supported inline** even at function level (notably `isolate`, `evm_version` — see [edr#1349](https://github.com/NomicFoundation/edr/issues/1349)). Flag any files using contract-level directives or unsupported inline settings.
+7. Scan `.t.sol` files for **inline test config** — `forge-config:` directives in both line comments (`/// forge-config:`, `// forge-config:`) and block comments (`/** forge-config: ... */`). Since Hardhat 3.3.0, inline config is supported at the **function level** and `forge-config:` is backwards-compatible ([docs](https://hardhat.org/docs/guides/testing/inline-configuration)). Hardhat 3.5.0 / EDR `0.12.0-next.33` added function-level support for `isolate` and `evm_version` ([edr#1349](https://github.com/NomicFoundation/edr/issues/1349) closed). However, Hardhat only supports **function-level** inline config — **contract-level** inline config (directives placed on the contract definition rather than individual functions) is NOT supported. For contract-level configs, the workaround is to set the value globally in `hardhat.config.ts`. Flag any files using contract-level directives.
 8. **Scan `package.json` scripts** — read every script entry and identify all Forge-dependent commands (not just `forge test` / `forge build`). Custom scripts using `forge bind`, `forge script`, `forge snapshot`, `forge verify-contract`, etc. represent additional Forge features the project actively uses. List them in the analysis file — they must appear in the feature parity table.
 9. **Scan for zkSync-specific profiles and contracts:** Check `foundry.toml` for zkSync profiles (e.g., `[profile.zksync]`) and scan for zkSync-specific contract directories (`contracts/zkSync/`, `contracts/zk*/`, `src/zkSync/`, etc.). Assess what percentage of the codebase these contracts represent (file count relative to total `.sol` files). zkSync compilation settings and contracts may not be testable under Hardhat — flag them for the migration report.
 10. **Determine the package manager:** Check which lockfile exists (`yarn.lock`, `package-lock.json`, `pnpm-lock.yaml`) and note the corresponding tool (`yarn`, `npm`, `pnpm`). If **no lockfile exists**, use `pnpm` as the default. If **multiple lockfiles exist**, pick the one that is more recently modified OR has more dependencies defined — whichever gives the clearest signal. Check modification timestamps with `ls -lt yarn.lock package-lock.json pnpm-lock.yaml 2>/dev/null` and line counts with `wc -l`. Document the choice and the reason in the analysis file. Do **not** introduce a second lockfile. **Lock in this choice** — use it for every install command throughout the session (including `patch-package` steps). Never mix package managers.
@@ -42,7 +42,7 @@ After analyzing, write a structured summary to a file named `.claude/<project-na
 - All profiles (`[profile.default]`, `[profile.ci]`, etc.) and their settings
 - Remappings, submodules, source/test/script directories
 - Any notable patterns (absolute imports, unusual configs)
-- Inline test config usage (`forge-config:` comments) — list affected files and which inline settings are used, noting whether each directive is at the **function level** (supported in Hardhat) or **contract level** (NOT supported in Hardhat — must be set globally). Also flag any that use settings not yet supported inline even at function level (notably `isolate`, `evm_version` — see [edr#1349](https://github.com/NomicFoundation/edr/issues/1349))
+- Inline test config usage (`forge-config:` comments) — list affected files and which inline settings are used, noting whether each directive is at the **function level** (supported in Hardhat 3.5.0+, including `isolate` / `evm_version` per [edr#1349](https://github.com/NomicFoundation/edr/issues/1349)) or **contract level** (NOT supported in Hardhat — must be set globally).
 - All Forge-dependent `package.json` scripts identified in step 8 above
 - zkSync-specific profiles and contracts identified in step 9 above (if any), with percentage of codebase affected
 - Selected package manager (from step 10 above)
@@ -239,8 +239,9 @@ Map these from `[profile.default]` or `[fuzz]`/`[invariant]` sections:
 | `fs_permissions = [{ access = "read-write", path = "./dir" }]` | `test.solidity.fsPermissions: { dangerouslyReadWriteDirectory: ["./dir"] }` |
 | `allow_internal_expect_revert = true` | `test.solidity.allowInternalExpectRevert: true` |
 | `isolate = true` | `test.solidity.isolate: true` |
+| `[bind_json]` `include = ["path/to/EIP712Types.sol"]` | `test.solidity.eip712Types: { include: ["path/to/EIP712Types.sol"] }` (Hardhat 3.5.0+) — see "EIP-712 cheatcodes" reference section |
 
-**Note on `isolate`:** The global `isolate = true` in `foundry.toml` maps to `test.solidity.isolate: true`. Per-test inline `/// forge-config: default.isolate = true` overrides are **not yet supported** — `isolate` is not one of the settings available for inline configuration in Hardhat 3.3.0. See [edr#1349](https://github.com/NomicFoundation/edr/issues/1349) for tracking. **Do NOT set `isolate` globally as a workaround** when only some tests use it — it dramatically slows down the entire test suite. Only set it globally if `foundry.toml` has `isolate = true` at the `[profile.default]` level (meaning it was already global in Forge). If only specific tests or contracts use inline `isolate`, document it as a gap.
+**Note on `isolate`:** The global `isolate = true` in `foundry.toml` maps to `test.solidity.isolate: true`. **Function-level** inline `/// forge-config: default.isolate = true` overrides are supported as of Hardhat 3.5.0 / EDR `0.12.0-next.33` ([edr#1349](https://github.com/NomicFoundation/edr/issues/1349) closed). **Contract-level** inline `isolate` directives are still silently ignored. **Do NOT set `isolate` globally as a workaround for contract-level usage** — it dramatically slows down the entire test suite. Only set it globally if `foundry.toml` has `isolate = true` at the `[profile.default]` level (meaning it was already global in Forge). If only specific contracts use contract-level inline `isolate`, document it as a gap.
 
 **Note on inline config scope:** Hardhat only supports inline `forge-config:` directives at the **function level** (on individual test functions). Foundry also supports **contract-level** inline config (directives placed on the contract definition, which apply to all functions in that contract). Contract-level directives are silently ignored by Hardhat.
 
@@ -248,7 +249,7 @@ Map these from `[profile.default]` or `[fuzz]`/`[invariant]` sections:
 
 - **Safe to set globally:** `allowInternalExpectRevert` — enabling this globally is harmless; it only changes behavior when `vm.expectRevert` is used on internal/library calls, and enabling it on tests that don't use that pattern has no effect.
 - **NOT safe to set globally:** `isolate` — this forces each test call to run in a separate EVM context, which dramatically slows down the entire test suite. If only a few test contracts/functions use `isolate`, setting it globally would impose a major performance penalty on all tests. **Do NOT set `isolate` globally as a workaround.** Instead, leave it as a documented gap in the migration report.
-- **Use judgement for other settings:** `disableBlockGasLimit`, `evm_version`, etc. — consider whether enabling them globally changes behavior for tests that don't expect it. When in doubt, do NOT set globally; document as a gap instead.
+- **Use judgement for other settings:** `disableBlockGasLimit`, etc. — consider whether enabling them globally changes behavior for tests that don't expect it. When in doubt, do NOT set globally; document as a gap instead. (Note: `evm_version` is supported inline at function level since 3.5.0; only contract-level scope or global needs would force a workaround.)
 
 The guiding principle: only apply a global workaround if it is **behaviorally neutral** for tests that don't use the setting. If a global setting would change behavior or performance for unrelated tests, leave it as a gap.
 
@@ -333,15 +334,15 @@ These foundry.toml settings and commands have no direct Hardhat equivalent. Leav
 | foundry.toml | Status |
 | --- | --- |
 | `dynamic_test_linking` | Foundry-only |
-| `gas_snapshot_check` / `[profile.gas]` | Supported — use `npx hardhat test solidity --snapshot` to generate and `--snapshot-check` to verify. See: https://hardhat.org/docs/guides/testing/gas-snapshots |
-| `[bind_json]` | Foundry-only |
+| `gas_snapshot_check` / `[profile.gas]` | Supported (✅ Full) — `npx hardhat test solidity --snapshot` / `--snapshot-check`; gas values match Forge. **Caveat (not a gap):** Hardhat's whole-suite `.gas-snapshot` uses a `Contract#function` format incompatible with Forge's `Contract:function()` (by design), so `--snapshot-check` against a committed *Forge*-format `.gas-snapshot` errors with HHE803 — regenerate the baseline with `--snapshot`. See Update Step 5b "KEY FACT" and [hardhat#8357](https://github.com/NomicFoundation/hardhat/issues/8357). Docs: https://hardhat.org/docs/guides/testing/gas-snapshots |
+| `[bind_json]` | 🟡 Partial — the `include` field has a direct Hardhat equivalent in `test.solidity.eip712Types.include` (added in Hardhat 3.5.0). Both tools require the user to point at the file(s) defining EIP-712 structs so `vm.eip712HashStruct` / `vm.eip712HashType` can resolve names. Hardhat does NOT emit a `JsonBindings.sol`-style helper file — if any Solidity file in the project imports `schema_*` constants or `serialize`/`deserialize` helpers from the generated file, that part has no Hardhat equivalent (grep for `JsonBindings` imports / `schema_` usage to confirm before classifying). See the "EIP-712 cheatcodes" reference section below. |
 | `[fmt]` | 🟡 Partial — `forge fmt` works standalone regardless of build tool; `prettier-plugin-solidity` is a mature alternative |
 | `[lint]` | Foundry-only (projects typically use prettier or solhint) |
 | `forge doc` | 🟡 Partial — community plugin [`@solarity/hardhat-markup`](https://www.npmjs.com/package/@solarity/hardhat-markup) supports HH3 for NatSpec documentation generation |
 | `out = "out"` | Hardhat uses its own `artifacts/` + `cache/` dirs |
 | `libs = ["lib"]` | Hardhat resolves `lib/` deps via `remappings.txt`; npm deps via Node.js resolution |
 | `[profile.zksync]` / zkSync compilation (`--zksync`, `fallback_oz`, `is_system`, `mode`) | Foundry-only — check whether `@matterlabs/hardhat-zksync` supports HH3 (as of early 2026 it targets HH2 only). If not, zkSync contracts compile but can't be meaningfully tested |
-| `/// forge-config:` inline test config | 🟡 Partially supported since Hardhat 3.3.0 — **function-level only**. `forge-config:` prefix is backwards-compatible. Most fuzz/invariant settings and `allowInternalExpectRevert` work inline at function level. **Contract-level** inline config (directives on contract definitions) is NOT supported — use global config as workaround. `isolate`, `evm_version`, and other settings are not yet supported inline even at function level — use global config. See: [docs](https://hardhat.org/docs/guides/testing/inline-configuration), [edr#1349](https://github.com/NomicFoundation/edr/issues/1349) |
+| `/// forge-config:` inline test config | 🟡 Partially supported — **function-level only**. `forge-config:` prefix is backwards-compatible. Fuzz/invariant settings and `allowInternalExpectRevert` have worked inline at function level since Hardhat 3.3.0; `isolate` and `evm_version` were added in Hardhat 3.5.0 / EDR `0.12.0-next.33` ([edr#1349](https://github.com/NomicFoundation/edr/issues/1349) closed). **Contract-level** inline config (directives on contract definitions) is NOT supported in any Hardhat 3 release — use global config as workaround. See: [docs](https://hardhat.org/docs/guides/testing/inline-configuration) |
 | `forge coverage --ir-minimum` | Not needed — Hardhat 3's built-in `--coverage` handles via-IR projects natively without a separate flag. Note: coverage instrumentation may cause some tests to fail that pass without coverage — these are coverage-specific and should be investigated separately. |
 
 **Note:** This table is not exhaustive. Before concluding a Foundry setting has no Hardhat equivalent, check `test.solidity` type definitions in `node_modules/hardhat/src/internal/builtin-plugins/solidity-test/type-extensions.ts` and the [Hardhat 3 documentation](https://hardhat.org/docs).
@@ -486,6 +487,8 @@ When tests pass, **always show the full test output to the user** so they can ve
 
 **Coverage verification (optional):** If the project has a `forge coverage` script in `package.json`, run `npx hardhat test solidity --coverage` after tests pass to verify coverage works. Coverage instrumentation can reveal issues not seen in normal test runs. Compare the number of passing tests with and without `--coverage` — any discrepancy should be noted in the migration report. Note: Hardhat 3's coverage handles via-IR projects natively; Forge's `--ir-minimum` flag has no equivalent and is not needed.
 
+**Gas snapshot verification (optional):** If the project uses gas snapshot cheatcodes (grep `.t.sol` files for `vm.snapshotGasLastCall`, `vm.startSnapshotGas`, `vm.stopSnapshotGas`), verify the feature works using the procedure in [Update Step 5b](#update-step-5b-verify-gas-snapshots). The same three-case logic applies — restore any snapshot files written during the check so the migration doesn't leave them modified. If the project doesn't use any of those cheatcodes, skip this step.
+
 ## Step 7: Migration report
 
 After compilation and tests complete (whether all pass or not), write the report to `.claude/<project-name>-hardhat-migration-report.md` in the repository root and present it to the user. The report must assess **feature parity** between Forge and Hardhat for this project and give a clear verdict.
@@ -566,8 +569,10 @@ Use this 4-column format (the Forge and Hardhat 3 columns are implicit — omit 
 | --- | --- | --- | --- |
 | `vm.someCheatcode()` | ❌ **Bug** | **High** — N tests failing; genuine blocker | [Local bug report](bugs/vm-some-cheatcode.md) (not yet filed upstream) — test code not modified; fix needed in Hardhat / EDR |
 | `vm.unsupported()` | 🚩 **Gap** | **High** — M test instances disabled; layer X is untested | No tracking issue found — consider filing one; workaround: implement equivalent logic in a Solidity helper |
-| Gas snapshots | 🚩 **Gap** | **Medium** — tests run but snapshots can't be generated | [#7769](https://github.com/NomicFoundation/hardhat/issues/7769) — no workaround currently |
+| Glob overrides | 🚩 **Gap** | **Medium** — per-file compiler overrides must be listed individually | [#4686](https://github.com/NomicFoundation/hardhat/issues/4686) — no glob (`**`) support; enumerate each file path |
 | Etherscan verification | 🟡 **Partial** | **Low** — key model differs; minor CI update needed | Consolidate to a single `ETHERSCAN_API_KEY` — Etherscan API v2 accepts one key across all supported chains |
+
+> Note: `Gas snapshots` is **not** a gap example — Hardhat supports `--snapshot` / `--snapshot-check` with identical gas values. The whole-suite `.gas-snapshot` file format was simply not designed to be Forge-compatible (see Update Step 5b KEY FACT), which is ✅ Full parity, not a gap.
 
 The Impact cell must start with a severity word (**High** / **Medium** / **Low**) followed by an em-dash and a short explanation of what breaks.
 
@@ -590,12 +595,9 @@ These features work equivalently in Hardhat 3:
 - Deployment scripting (`forge script` / `.s.sol`) — project has no `script/` directory
 ```
 
-If inline test config was detected in Step 1, check which inline settings the project uses and at what level (function vs contract). Inline config is 🟡 **Partial** if the project uses:
+If inline test config was detected in Step 1, check which inline settings the project uses and at what level (function vs contract). Inline config is 🟡 **Partial** if the project uses **contract-level** inline config (directives on contract definitions) — Hardhat only supports function-level; contract-level directives are silently ignored. The workaround is to set the value globally in `hardhat.config.ts`.
 
-- **Contract-level** inline config (directives on contract definitions) — Hardhat only supports function-level; contract-level directives are silently ignored. The workaround is to set the value globally in `hardhat.config.ts`.
-- **Unsupported inline settings** even at function level (notably `isolate`, `evm_version` — see [edr#1349](https://github.com/NomicFoundation/edr/issues/1349))
-
-List the affected files and specify whether the issue is contract-level scope or unsupported setting. Only classify as ✅ Full parity if all inline directives are at function level AND use supported settings (fuzz/invariant settings, `allowInternalExpectRevert`).
+List the affected files and specify which directives are at contract level. Only classify as ✅ Full parity if all inline directives are at function level. As of Hardhat 3.5.0 / EDR `0.12.0-next.33`, supported function-level settings include all fuzz/invariant settings, `allowInternalExpectRevert`, `isolate`, and `evm_version` ([edr#1349](https://github.com/NomicFoundation/edr/issues/1349) closed).
 
 If any `UnsupportedCheatcode` errors were encountered, add one row per distinct unsupported cheatcode to the gap table above.
 
@@ -708,7 +710,7 @@ Example header for a Failed result:
 
 ### Notable gaps (non-blocking, medium+ impact)
 
-- 🟡 Inline test config partially supported — `isolate` and `evm_version` not yet available inline
+- 🟡 Inline test config partially supported — contract-level directives are silently ignored
 ```
 
 The final body section is **Next Steps** — it is always the last numbered section in the report. The verdict itself lives in the header, not here. This section contains a short numbered list of recommended actions, **ordered from most to least impact**. Each item must name the concrete action, state the impact justification (test count, severity, or workflow scope), and include a link where relevant. Three to five items is the target length — don't pad with low-impact items already covered by the gap table.
@@ -749,8 +751,8 @@ Since Hardhat 3.3.0, inline `forge-config:` directives are supported for most se
    - Remove any related comments/TODOs that are no longer accurate
 3. **Do NOT remove global settings** that are:
    - Required regardless of inline config (e.g., `gasLimit`, `fsPermissions`, `fuzz.*` — these are project-wide defaults from `foundry.toml`, not workarounds)
-   - Workarounds for **contract-level** inline config (Hardhat only supports function-level)
-   - For settings not yet supported inline even at function level (notably `isolate`, `evm_version` — check [edr#1349](https://github.com/NomicFoundation/edr/issues/1349) for current status)
+   - Workarounds for **contract-level** inline config (Hardhat only supports function-level in any release to date)
+   - Any settings still not supported inline at function level — check the [inline config docs](https://hardhat.org/docs/guides/testing/inline-configuration) for the current list (as of Hardhat 3.5.0 / EDR `0.12.0-next.33`, this includes fuzz/invariant settings, `allowInternalExpectRevert`, `isolate`, and `evm_version` per [edr#1349](https://github.com/NomicFoundation/edr/issues/1349) closed)
 4. Update comments in `hardhat.config.ts` about inline config support status (e.g., if the comment says "silently ignored", update it to reflect current support level — noting function-level vs contract-level distinction).
 
 ### Update Step 4: Re-evaluate every gap
@@ -762,9 +764,13 @@ Go through **every row** in the existing report's feature parity table (gaps, bu
    - Check the [Hardhat changelog](https://hardhat.org/docs/reference/changelog) and [EDR changelog](https://github.com/NomicFoundation/edr/releases) for relevant changes
    - For `UnsupportedCheatcode` entries, check if the cheatcode is now supported by running a quick test or checking EDR release notes
 2. **If a gap is resolved:**
-   - If tests were commented out with `// HARDHAT-SKIP` for this gap, **uncomment them**
+   - If tests were commented out with `// HARDHAT-SKIP` for this gap, **uncomment them** — see "Uncommenting HARDHAT-SKIP blocks" guidance below
    - Move the feature from the gap table to the full parity list
    - Remove any workaround code/config that was added for this gap
+
+   **Uncommenting HARDHAT-SKIP blocks — use brace counting, not "stop at first `}`":** A naive procedure that strips the `// ` prefix from every line until it sees a closing brace at the function-definition indent will break when the function body has same-indent nested braces. This happens whenever an inner block (`if { ... }`, `for { ... }`, struct literal, etc.) was originally formatted at the same indent as the function declaration — common in auto-generated comment-out blocks where every body line is prefixed with a single `// ` without preserving relative indentation. The naive procedure stops at the inner block's closing brace, leaving the rest of the function commented and producing invalid Solidity.
+
+   The correct algorithm: after the `// HARDHAT-SKIP:` header (and any optional `// See:` follow-up lines), uncomment every subsequent line that matches `<indent>//`. After uncommenting each line, strip string and comment content, then count `{` and `}` and track depth. Stop when depth has become positive (i.e., the function declaration's `{` was seen) and then returns to zero (the function's closing `}`). Quick sanity check after running: grep for any leftover lines matching `^<indent>// [a-z]` or `^<indent>// }` in the affected files — non-empty output indicates an incomplete uncomment.
 3. **If a gap is partially resolved** (e.g., new inline config settings added but not all), update the parity level and notes accordingly
 4. **If a gap remains unchanged**, keep it as-is
 
@@ -780,17 +786,59 @@ Go through **every row** in the existing report's feature parity table (gaps, bu
 
 ### Update Step 5b: Verify gas snapshots
 
-If the project uses Forge gas snapshots (check for `forge snapshot` in `package.json` scripts, `gas_snapshot_check` in `foundry.toml`, `[profile.gas]` section, or `.forge-snapshots/` directory):
+**Constraint:** This step must never leave the project's snapshot files modified. The procedure below tests both `--snapshot-check` and `--snapshot` code paths, but every write is reverted at the end. Never run blanket `git clean -fd` to clean up — that would also nuke unrelated untracked work in the workspace.
 
-1. **Generate snapshots:** Run `npx hardhat test solidity --snapshot 2>&1 | tee /tmp/hardhat-snapshot-output.txt`. This writes gas snapshots to `.gas-snapshot` (or the configured location).
-2. **Verify snapshots:** Run `npx hardhat test solidity --snapshot-check 2>&1 | tee /tmp/hardhat-snapshot-check-output.txt`. This compares current gas usage against the stored snapshots.
-3. **If both commands succeed:**
-   - Gas snapshots are working — remove the `Gas snapshots` row from the gap table (or move it to the full parity list)
-   - Remove any comments in `hardhat.config.ts` about gas snapshots not being supported
-   - Update the report's blockers/notable gaps sections accordingly
-4. **If either command fails:**
-   - Keep the `Gas snapshots` gap row as-is
-   - Note the specific error in the gap table's Workaround / Notes column
+**KEY FACT — Hardhat's whole-suite `.gas-snapshot` format was never designed to be Forge-compatible (not "broken" — just not built for interop, confirmed with the Hardhat team); do NOT classify it as a gap or bug.** Forge has two distinct gas-snapshot mechanisms that write different files:
+
+- The **`forge snapshot` command** → whole-suite **`.gas-snapshot`** at the project root (one entry per test function).
+- **Inline cheatcodes** (`vm.snapshotGasLastCall`, `vm.startSnapshotGas` / `vm.stopSnapshotGas`) → per-group **`snapshots/<group>.json`** files.
+
+Hardhat supports **both** (`--snapshot` / `--snapshot-check`) with **identical gas values**, but writes/reads the whole-suite file with a `Contract#function` separator where Forge uses `Contract:function()`, and does not read Forge's format by design. Decision rule:
+
+- A committed `forge snapshot`-generated `.gas-snapshot` makes `--snapshot-check` fail with **`HHE803: Invalid format in snapshot file .gas-snapshot`**. **The format error itself is NEVER the gap** — it's not a bug and not a 🚩 Gap; do not file a bug report over it.
+- But the HHE803 only means "couldn't parse the file" — it does **not** tell you the gas *values* agree. You must still compare values separately (Case 1 below shows how, via a separator-normalized diff): **values match → ✅ Full parity**; **values diverge → 🟡 Partial** (a genuine cross-toolchain accounting difference — that is the gap, not the format). Do not stamp ✅ Full off the back of HHE803 alone without checking values.
+- When ✅, add a Next-Steps item to regenerate the baseline once with `npx hardhat test solidity --snapshot` (rewrites `.gas-snapshot` in Hardhat's format), noting the two toolchains can't share the one file (hardcoded path, mutually unreadable formats — keep a per-toolchain baseline if both are needed).
+- The inline `snapshots/*.json` cheatcode files **are** cross-compatible, so `--snapshot-check` works normally against those.
+
+Background and the proposal to relax Hardhat's reader to also accept `:` are tracked in [hardhat#8357](https://github.com/NomicFoundation/hardhat/issues/8357) (open) — which also notes the separator change alone may not give full parity for projects with duplicate contract names.
+
+**Detection.** First decide which of three cases applies:
+
+| State | Detection |
+|---|---|
+| Cheatcodes used, baseline committed | Grep `.t.sol` files for `vm.snapshotGasLastCall`, `vm.startSnapshotGas`, `vm.stopSnapshotGas` (any match) **AND** one or more of: `.gas-snapshot` at project root, files matching the project's configured `snapshot_path`, a `snapshots/` directory with `.json` files, or any other snapshot output declared in `package.json` scripts (`forge snapshot --snap path/...`). |
+| Cheatcodes used, no baseline | Cheatcode grep matches but no snapshot files exist (fresh adoption, or snapshots are gitignored). |
+| Cheatcodes not used | No cheatcode grep matches. |
+
+**Procedure per state:**
+
+#### Case 1 — Cheatcodes used, baseline committed
+
+1. **`--snapshot-check` first** (against the existing committed baseline): `npx hardhat test solidity --snapshot-check 2>&1 | tee /tmp/hardhat-snapshot-check-output.txt`. Ordering matters — running `--snapshot` first would overwrite the committed values and turn the subsequent check into a tautological self-comparison, losing the cross-toolchain signal.
+   - **If this fails with `HHE803: Invalid format in snapshot file .gas-snapshot`,** the committed baseline is a Forge-format `.gas-snapshot` that Hardhat does not read by design (see KEY FACT above). This is **expected** — do not treat it as an error to flag. Skip the `--snapshot-check` value comparison and instead verify gas equivalence directly: run `--snapshot` (step 3), then diff the regenerated file against the committed Forge baseline with the separator normalized — `git show HEAD:.gas-snapshot | sed 's/:/#/' | sort` vs `sed -E 's#^[^ ]*\.t\.sol:##' .gas-snapshot | sort` (the `sed` on the Hardhat file strips the FQN prefix Hardhat adds for duplicate contract names). Identical standard-test (`(gas:)`) lines → ✅ Full parity (fuzz `(runs:)` lines may differ by seed nondeterminism — not a gas change). If standard-test gas values **diverge** after normalization → **🟡 Partial** per step 5's divergence bullet — the HHE803 was just the format; the value divergence is the actual gap. Then restore as in step 4.
+2. **Snapshot project state**: `git status --short > /tmp/snapshot-before.txt`.
+3. **Run `--snapshot`** to verify the generation code path: `npx hardhat test solidity --snapshot 2>&1 | tee /tmp/hardhat-snapshot-output.txt`.
+4. **Restore project state**: `git status --short > /tmp/snapshot-after.txt`, diff against `before`, then:
+   - For each modified tracked file in the delta: `git checkout HEAD -- <path>`.
+   - For each new untracked file in the delta: `rm <path>`.
+5. **Interpret the `--snapshot-check` result** as a cross-toolchain gas-value sanity check:
+   - `HHE803: Invalid format` on a `.gas-snapshot` baseline → committed baseline is Forge-format, which Hardhat does not read by design (see KEY FACT). The format error itself is **not a gap/bug**, but it leaves the value comparison unverified — run the normalized-diff path in step 1's sub-bullet, then fall through to the bullets below as if `--snapshot-check` had reported: identical values → ✅ Full parity (+ regenerate-baseline Next-Step); divergent values → 🟡 Partial.
+   - All entries pass → gas values match across toolchains; classify ✅ Full parity, no caveat.
+   - Most/all entries diverge with non-trivial deltas → systematic accounting difference between Forge and EDR (candidates: pre- vs post-refund reporting, intrinsic / cold-access inclusion, cheatcode-call overhead — exact attribution requires checking Forge & EDR sources). Classify 🟡 Partial. Note direction (Hardhat higher or lower), magnitude (% and absolute), and whether the divergence is uniform or varies by test pattern. Either direction is worth flagging — different conventions, not "better/worse". A baseline tracking one tool's numbers can't be reused under the other.
+   - A few entries fail with small deltas → likely real code drift since the snapshots were committed, unrelated to the toolchain switch. Don't flag in the gap table.
+
+#### Case 2 — Cheatcodes used, no baseline
+
+1. **Snapshot project state**: `git status --short > /tmp/snapshot-before.txt`.
+2. **Run `--snapshot`**: `npx hardhat test solidity --snapshot 2>&1 | tee /tmp/hardhat-snapshot-output.txt`.
+3. **Restore project state** using the same diff-and-delete approach as Case 1 step 4.
+4. **Classify**: if `--snapshot` exits cleanly and writes a non-empty output file, the feature works → ✅. Cross-toolchain value divergence cannot be assessed without a baseline; the report's gap-row note should say so explicitly rather than silently omit the comparison.
+
+#### Case 3 — Cheatcodes not used
+
+Skip this step. Add `Gas snapshots` to the "Features not used by this project" list in the report. Do not classify it as a gap.
+
+**On failure (any case):** if either command errors (not just produces unexpected values), keep `Gas snapshots` as 🚩 Gap — **except** the expected `HHE803: Invalid format in snapshot file .gas-snapshot` case (a committed Forge-format `.gas-snapshot`, which Hardhat does not read by design — see KEY FACT), which is **not** a gap and must be classified ✅ Full per step 1/5. For any other error, capture the exact message in the gap table's Workaround / Notes column and check whether the underlying issue is Hardhat / EDR or project-specific.
 
 ### Update Step 6: Update the report
 
@@ -863,6 +911,30 @@ Hardhat 3 has native Foundry compatibility built into its core (no plugin requir
 **Remapping target path pitfall:** When adding remappings for submodules, always verify the actual import paths used in the codebase — don't assume the standard `lib/<name>/src/` pattern. For example, if the codebase uses `import "murky/src/Merkle.sol"`, the correct remapping is `murky/=lib/murky/` (so it resolves to `lib/murky/src/Merkle.sol`). Using `murky/=lib/murky/src/` would incorrectly resolve to `lib/murky/src/src/Merkle.sol`. Check actual import statements before setting the remapping target.
 
 Docs: https://hardhat.org/docs/reference/foundry-compatibility
+
+## Reference: EIP-712 cheatcodes (`vm.eip712HashStruct` / `vm.eip712HashType`)
+
+When a project uses `vm.eip712HashStruct(string name, bytes encoded)` or `vm.eip712HashType(string name)` with a bare type **name** (e.g. `'Permit'`, not the full canonical type-def string with `(`), both Forge and Hardhat need to know how to resolve that name to its canonical EIP-712 type string. Each tool wires this up differently, but the user-facing role of the config is the same.
+
+**Forge mechanism (`[bind_json]`):**
+
+- `[bind_json].include = ["tests/mocks/EIP712Types.sol"]` tells `forge bind-json` which Solidity file(s) define the EIP-712 structs.
+- Running `forge bind-json` generates a Solidity file (default `[bind_json].out = "tests/mocks/JsonBindings.sol"`) containing one `string constant schema_<Name> = "<canonical type def>";` line per struct, plus serialize / deserialize helpers and a `Vm` interface for JSON cheatcodes.
+- At test time, the cheatcodes read `state.config.bind_json_path` and scan the generated file line-by-line for entries prefixed with `TYPE_BINDING_PREFIX`, building a `name -> definition` map. See `get_type_def_from_bindings` in [`crates/cheatcodes/src/utils.rs`](https://github.com/foundry-rs/foundry/blob/master/crates/cheatcodes/src/utils.rs).
+- The generated `JsonBindings.sol` is **load-bearing** even when no Solidity file imports it — Forge reads it as data. Verify with the build pipeline: it must be regenerated whenever struct definitions change.
+
+**Hardhat 3 mechanism (`test.solidity.eip712Types`):**
+
+- Added in Hardhat 3.5.0 / EDR `0.12.0-next.32`.
+- `test.solidity.eip712Types: { include: ["tests/mocks/EIP712Types.sol"] }` tells Hardhat which Solidity file(s) to AST-walk at test-runner startup. Hardhat extracts struct definitions, canonicalizes them, and registers them with EDR in-memory. **No file is generated.** See `collectEip712CanonicalTypes` in `node_modules/hardhat/src/internal/builtin-plugins/solidity-test/eip712/index.ts`.
+- Without this config, every call to `vm.eip712HashStruct('Name', encoded)` fails with `'Name' not defined in eip712CanonicalTypes`.
+- Also accepts an `exclude` glob.
+
+**Migration mapping:**
+
+When `foundry.toml` has `[bind_json]`, set `test.solidity.eip712Types.include` to the same paths as `[bind_json].include`. This is parity for the cheatcode-resolution path.
+
+**When `JsonBindings.sol` is NOT just a Forge implementation detail:** Some projects import `schema_*` constants, the `Vm` interface, or the `serialize`/`deserialize` helpers from the generated file directly in Solidity. Grep for `JsonBindings` (or whatever `[bind_json].out` filename the project uses) outside the file itself, and for any of the symbols it exports (`schema_`, `serialize`, `deserialize`, etc.). If any test or source file consumes these, Hardhat has **no equivalent** — the project would need a custom generator. Classify `[bind_json]` as 🚩 **Gap** in that case. If the generated file is purely consumed by the cheatcodes (no Solidity imports), classify as ✅ Full parity with the one-line `eip712Types.include` workaround.
 
 ## Reference: Transitive dependency version conflicts (Solidity type mismatch)
 
@@ -949,5 +1021,5 @@ Track these issues — they may be resolved in future versions:
 
 - **Glob overrides:** https://github.com/NomicFoundation/hardhat/issues/4686
 - ~~**Gas snapshot tests:**~~ Resolved — use `--snapshot` and `--snapshot-check` CLI flags. See: https://hardhat.org/docs/guides/testing/gas-snapshots
-- **Inline test config — contract-level:** Hardhat only supports function-level inline config. Contract-level `forge-config:` directives (on contract definitions) are silently ignored — must use global config as workaround. Foundry added contract-level support in v0.3.0 ([#9430](https://github.com/foundry-rs/foundry/pull/9430)).
-- **Inline test config — remaining settings:** Some settings (`isolate`, `evm_version`, etc.) are not yet supported inline even at function level: https://github.com/NomicFoundation/edr/issues/1349
+- **Inline test config — contract-level:** Hardhat only supports function-level inline config. Contract-level `forge-config:` directives (on contract definitions) are silently ignored — must use global config as workaround. Foundry added contract-level support in v0.3.0 ([#9430](https://github.com/foundry-rs/foundry/pull/9430)). No upstream Hardhat/EDR tracking issue found as of 2026-05-21.
+- ~~**Inline test config — `isolate` / `evm_version`:**~~ Resolved in Hardhat 3.5.0 / EDR `0.12.0-next.33` ([edr#1349](https://github.com/NomicFoundation/edr/issues/1349) closed). Both settings now work at function level.
