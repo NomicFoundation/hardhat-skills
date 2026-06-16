@@ -59,6 +59,7 @@ Edit `package.json`:
 
 - Add `"hardhat": "^<latest-version>"` to `devDependencies`, using the version fetched above.
 - Add `"@nomicfoundation/hardhat-verify": "^3.0.11"` to `devDependencies` (if `[etherscan]` section exists)
+- Add `"hardhat-ignore-warnings": "^0.3.0"` to `devDependencies` (if `ignored_warnings_from` is set in `foundry.toml`) — see "Compiler warning suppression" in Step 3 for the matching config.
 - Ensure the top-level field `"type": "module"` is set. **Note:** This switches the project to ESM, which is required by Hardhat 3. If the project has existing CommonJS files (`.js` with `require()`), this may break them — flag it to the user if so.
 - **Replace** the convertible `forge`-based scripts (`test`, `build`, `coverage`, `snapshot`, `snapshot:check`) with their Hardhat equivalents under the same script name — do NOT add a parallel `-hardhat`-suffixed entry. The original Forge commands remain recoverable from git history.
 - **Leave Forge-only scripts intact** (e.g., `forge script`, `forge bind`, `forge verify-contract`, custom `forge` invocations). They continue to work as long as Foundry is installed; the migration report lists them as Foundry-only gaps the user must address before deleting `foundry.toml`.
@@ -291,6 +292,37 @@ verify: {
   },
 },
 ```
+
+### Compiler warning suppression (`warnings`)
+
+Map `ignored_warnings_from` from `foundry.toml` to the [`hardhat-ignore-warnings`](https://www.npmjs.com/package/hardhat-ignore-warnings) plugin. The plugin is HH3-compatible (`peerDependencies: { hardhat: "^3.1.0" }` as of v0.3.0). Add it to `devDependencies` per Step 2.
+
+Foundry's `ignored_warnings_from = ["lib/foo", "src/legacy"]` silences **all** compiler warnings originating from the listed paths. Hardhat 3 has no built-in equivalent — the plugin provides path-keyed suppression via a top-level `warnings` field.
+
+Register the plugin and translate each path into a glob key with `{ default: "off" }`:
+
+```typescript
+import { defineConfig } from "hardhat/config";
+import hardhatIgnoreWarnings from "hardhat-ignore-warnings";
+
+export default defineConfig({
+  plugins: [hardhatIgnoreWarnings],
+  solidity: { ... },
+  warnings: {
+    "lib/foo/**/*": { default: "off" },
+    "src/legacy/**/*": { default: "off" },
+  },
+});
+```
+
+**Path-to-glob conversion:**
+
+- Directory paths (e.g., `"lib/foo"`) become `"lib/foo/**/*"` to match every file under that directory recursively.
+- File paths (e.g., `"src/legacy/Old.sol"`) stay as-is — no glob suffix needed.
+
+When combining with other plugins (e.g., `hardhat-verify`), pass them all in the `plugins` array.
+
+**Beyond `ignored_warnings_from`:** The plugin also supports warning-code-specific rules (e.g., `'unused-param': 'off'`) and inline `// solc-ignore-next-line <code>` comments. Foundry has no equivalent for those — they're additional capabilities the user gains by adopting the plugin, not part of the mapping.
 
 ### Foundry settings without direct Hardhat equivalents
 
