@@ -53,7 +53,7 @@ This file serves as a reference throughout the migration so you don't have to re
 
 **Package manager:** Use the package manager determined in Step 1.
 
-**Fetch the latest Hardhat version:** Run `view hardhat version` using the package manager determined in Step 1 (e.g. `pnpm view hardhat version`), and note the version string returned. If the command fails, fall back to `3.3.0`.
+**Fetch the latest Hardhat version:** Run `view hardhat version` using the package manager determined in Step 1 (e.g. `pnpm view hardhat version`), and note the version string returned. If the command fails, fall back to `3.9.0`.
 
 Edit `package.json`:
 
