@@ -539,7 +539,7 @@ HH3 compatibility is a hard requirement. If a community plugin exists but only s
 
 #### Canonical feature names
 
-To ensure consistent gap reporting across different repos, **always use the exact feature names below** in the Feature column. Do not paraphrase, abbreviate, or add parenthetical clarifications — the dashboard aggregates gaps by feature name across repos, and inconsistent naming prevents deduplication.
+To ensure consistent gap reporting across different repos, **always use the exact feature names below** in the Feature column. Do not paraphrase, abbreviate, or add parenthetical clarifications — inconsistent naming prevents deduplication.
 
 | Canonical feature name | When to use |
 | --- | --- |
