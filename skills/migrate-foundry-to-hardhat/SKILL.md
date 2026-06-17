@@ -832,7 +832,7 @@ Background and the proposal to relax Hardhat's reader to also accept `:` are tra
 
 #### Case 3 — Cheatcodes not used
 
-Skip this step. Add `Gas snapshots` to the "Features not used by this project" list in the report. Do not classify it as a gap.
+Skip this step.
 
 **On failure (any case):** if either command errors (not just produces unexpected values), keep `Gas snapshots` as 🚩 Gap — **except** the expected `HHE803: Invalid format in snapshot file .gas-snapshot` case (a committed Forge-format `.gas-snapshot`, which Hardhat does not read by design — see KEY FACT), which is **not** a gap and must be classified ✅ Full per step 1/5. For any other error, capture the exact message in the gap table's Workaround / Notes column and check whether the underlying issue is Hardhat / EDR or project-specific.
 
