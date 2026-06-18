@@ -351,6 +351,39 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { anyValue } from "@nomicfoundation/hardhat-ethers-chai-matchers/withArgs";
 ```
 
+### 3.6 Don't infer Hardhat types — import the exported named type
+
+When you need to **type** a Hardhat object (a connection, `ethers`, `networkHelpers`, a signer, a fixture, etc.), do **not** reconstruct the type by inferring it from a variable or a function's return type. Hardhat's plugins export these as named types — find the one that matches and import it directly.
+
+```ts
+// ❌ Don't infer the type from the runtime value
+type HardhatConnection = Awaited<ReturnType<typeof hre.network.getOrCreate>>;
+let ethers: HardhatConnection["ethers"];
+
+// ✅ Import the exported named type — the same module the file already pulls
+//    `HardhatEthersSigner` from (see §3.3)
+import { type HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
+let ethers: HardhatEthers;
+```
+
+These types are strongly typed and stable; the `Awaited<ReturnType<typeof ...>>["x"]` indirection is brittle, harder to read, and unnecessary. If you can't find the type by name, check the type definitions in the plugin you're using — they are exported from a `/types` subpath. Common ones:
+
+| Need a type for…                                   | Import                                                              | From                                             |
+| -------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------ |
+| the `ethers` object (`typeof ethers` + helpers)    | `HardhatEthers`                                                     | `@nomicfoundation/hardhat-ethers/types`          |
+| a signer (`.address`, etc.)                        | `HardhatEthersSigner`                                               | `@nomicfoundation/hardhat-ethers/types`          |
+| a provider                                         | `HardhatEthersProvider`                                             | `@nomicfoundation/hardhat-ethers/types`          |
+| `getContractFactory`/`getContractAt`/`getSigners`… | `HardhatEthersHelpers`                                              | `@nomicfoundation/hardhat-ethers/types`          |
+| library linking / deploy options                   | `Libraries`, `FactoryOptions`, `DeployContractOptions`              | `@nomicfoundation/hardhat-ethers/types`          |
+| the `networkHelpers` object                        | `NetworkHelpers`                                                    | `@nomicfoundation/hardhat-network-helpers/types` |
+| time / fixtures / snapshots                         | `Time`, `Duration`, `Fixture`, `SnapshotRestorer`, `Snapshot`       | `@nomicfoundation/hardhat-network-helpers/types` |
+| helper arg types                                   | `NumberLike`, `BlockTag`                                            | `@nomicfoundation/hardhat-network-helpers/types` |
+| the whole connection (`network.create()` result)  | `NetworkConnection<ChainTypeT>`                                     | `hardhat/types/network`                          |
+| `hre.network`                                      | `NetworkManager`                                                    | `hardhat/types/network`                          |
+| chain-type generics / connection params            | `ChainType`, `DefaultChainType`, `GenericChainType`, `NetworkConnectionParams`, `CachedNetworkConnectionParams` | `hardhat/types/network` |
+
+> **Rule of thumb:** never reconstruct a connection-member type via `Awaited<ReturnType<typeof hre.network.getOrCreate>>["x"]`. Import the named type directly — `HardhatEthers` for `.ethers`, `NetworkHelpers` for `.networkHelpers`, `NetworkConnection` for the whole connection.
+
 ---
 
 ## 4. Library Linking Path Prefix
