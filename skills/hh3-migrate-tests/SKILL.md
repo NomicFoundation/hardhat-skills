@@ -27,3 +27,4 @@ Process each file with the workflow in [test-migration.md](references/test-migra
 
 - [ ] `npx tsc --noEmit` still passes with zero errors (no regressions)
 - [ ] Every test file passes individually (`npx hardhat test {file}`)
+- [ ] `npx hardhat test solidity` still passes (regression check — test-helper/config fixes can break Solidity tests)

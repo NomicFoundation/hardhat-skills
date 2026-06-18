@@ -117,6 +117,7 @@ export default defineConfig({
       invariant: {
         runs: 4,
         depth: 4,
+        failOnRevert: true, // only affects projects with invariant tests
       },
     },
   },

@@ -49,9 +49,9 @@ Converts all `.ts` (and any CommonJS `.js`) source files CJS→ESM and updates V
 ### Phase 5 — Test Fix-Up → [hh3-migrate-tests](../hh3-migrate-tests/SKILL.md)
 Gets the `.ts` test suite passing under V3.
 
-- [ ] `npx hardhat test solidity` passes with zero errors
 - [ ] `npx tsc --noEmit` still passes with zero errors
 - [ ] Every test file passes individually (`npx hardhat test {file}`)
+- [ ] `npx hardhat test solidity` still passes (regression check — test-helper/config fixes can break Solidity tests)
 - [ ] Checkpoint commit: `[CHECK] HH3 test suite fix-up: all tests passing under V3`
 
 ### Phase 6 — Script Validation → [hh3-migrate-validate-scripts](../hh3-migrate-validate-scripts/SKILL.md)

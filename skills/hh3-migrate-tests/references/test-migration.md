@@ -47,5 +47,6 @@ Do not declare success until:
 
 - [ ] `npx tsc --noEmit` passes with zero errors (no regressions from your fixes)
 - [ ] Every file in your list passes `npx hardhat test {filePath}` with zero errors
+- [ ] `npx hardhat test solidity` still passes (regression check — test-helper/config fixes can break Solidity tests)
 
 If stuck on a file (same error after ~5 attempts, or fixes introduce new errors), stop and tell the user: the exact error output, which files you tried, and what you attempted.
