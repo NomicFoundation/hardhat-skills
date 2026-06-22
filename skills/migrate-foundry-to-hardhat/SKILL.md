@@ -69,11 +69,11 @@ Common script replacements (replace in-place under the same key):
 
 | Existing Foundry script | Replace with |
 | --- | --- |
-| `"test": "forge test"` | `"test": "npx hardhat test solidity"` |
-| `"build": "forge build"` | `"build": "npx hardhat compile"` |
-| `"coverage": "forge coverage ..."` | `"coverage": "npx hardhat test solidity --coverage"` |
-| `"snapshot": "forge snapshot ..."` | `"snapshot": "npx hardhat test solidity --snapshot"` |
-| `"snapshot:check": "forge snapshot --check ..."` | `"snapshot:check": "npx hardhat test solidity --snapshot-check"` |
+| `"test": "forge test"` | `"test": "hardhat test solidity"` |
+| `"build": "forge build"` | `"build": "hardhat compile"` |
+| `"coverage": "forge coverage ..."` | `"coverage": "hardhat test solidity --coverage"` |
+| `"snapshot": "forge snapshot ..."` | `"snapshot": "hardhat test solidity --snapshot"` |
+| `"snapshot:check": "forge snapshot --check ..."` | `"snapshot:check": "hardhat test solidity --snapshot-check"` |
 
 **Note on coverage:** Hardhat 3 has built-in coverage support (no plugin needed). The `--coverage` flag produces LCOV (`coverage/lcov.info`) and HTML (`coverage/html/index.html`) reports. Reference: https://hardhat.org/docs/tutorial/coverage
 
@@ -481,7 +481,7 @@ If tests fail:
 
 - `"call didn't revert at a lower depth than cheatcode call depth"` or `"reverted with an unrecognized custom error"` on tests using `vm.expectRevert` on internal/library calls → enable `test.solidity.allowInternalExpectRevert: true` in config (maps Foundry's `allow_internal_expect_revert`)
 - Gas-related failures, out-of-gas reverts, or unexpected reverts in large tests → check that `test.solidity.gasLimit` matches `foundry.toml`'s `gas_limit` (must be a bigint with `n` suffix)
-- `vm.envString: environment variable "X" not found` — tests that read env vars via `vm.envString()` or `vm.envOr()` in `setUp()` will fail if those vars aren't set. Fix: set the required env var in the Hardhat test script in `package.json` (e.g., `"test": "MY_VAR=value npx hardhat test solidity"`)
+- `vm.envString: environment variable "X" not found` — tests that read env vars via `vm.envString()` or `vm.envOr()` in `setUp()` will fail if those vars aren't set. Fix: set the required env var in the Hardhat test script in `package.json` (e.g., `"test": "MY_VAR=value hardhat test solidity"`)
 
 When tests pass, **always show the full test output to the user** so they can verify the results themselves.
 
