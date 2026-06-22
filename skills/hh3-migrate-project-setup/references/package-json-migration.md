@@ -72,7 +72,7 @@ Remove these categories of packages from `package.json`:
 - `hardhat` (the V2 version)
 - `solidity-coverage`
 - `hardhat-gas-reporter`
-- `hardhat-contract-sizer` (no built-in V3 replacement — just remove)
+- `hardhat-contract-sizer` (no built-in V3 replacement; the community `@solidstate/hardhat-contract-sizer` — the original author's HH3 port, peer `hardhat ^3.8.0` — is a drop-in if sizing is needed, otherwise just remove)
 - `hardhat-tracer` (built-in replacement; V3 has a `-v` verbosity flag on the test task)
 - Hardhat plugin packages — any name matching `hardhat-*` or `@<scope>/hardhat-*`. This includes third-party scopes (e.g. `@primitivefi/hardhat-dodoc`), not just `@nomicfoundation/hardhat-*` and `@nomiclabs/hardhat-*`.
 - `@typechain/*`, `typechain` — Remove. The **mocha-ethers** toolbox bundles `@nomicfoundation/hardhat-typechain` to generate typed artifacts natively. The **viem** toolbox does *not* bundle it — viem projects get typed contracts via `@nomicfoundation/hardhat-viem` instead
@@ -93,7 +93,7 @@ Use this table to decide what to do with each V2 dependency. Packages marked "Re
 | `@nomicfoundation/hardhat-verify` | Available | Remove — bundled by toolbox |
 | `@nomicfoundation/hardhat-ignition` | Available | Remove — bundled by toolbox |
 | `hardhat-gas-reporter` | Built-in | Remove — use `hardhat test --gas-stats` instead |
-| `hardhat-contract-sizer` | No V3 port | Remove — no official replacement; community `@solidstate/hardhat-contract-sizer` (peer `hardhat ^3.8.0`) exists if sizing is needed |
+| `hardhat-contract-sizer` | Community port | Remove the V2 package; if sizing is needed, install `@solidstate/hardhat-contract-sizer` (the original author's HH3 port, peer `hardhat ^3.8.0`) |
 | `hardhat-deploy` (wighawag) | v2.x available | Remove — if used, reinstall `hardhat-deploy@latest` (v2.x, rocketh rewrite); see note below |
 | `@openzeppelin/hardhat-upgrades` | V3 available (v4+) | Reinstall `@openzeppelin/hardhat-upgrades@^4` — see note below |
 | `solidity-coverage` | Built-in | Remove — use `hardhat test --coverage` instead |
@@ -147,7 +147,7 @@ Several V2 plugins are now built into Hardhat V3. Coverage and gas reporting are
 | ------------------------ | ---------------------------------------------------------------- |
 | `solidity-coverage`      | `hardhat test --coverage` (global flag)                          |
 | `hardhat-gas-reporter`   | `hardhat test --gas-stats` (global flag)                         |
-| `hardhat-contract-sizer` | No built-in replacement — remove the package                     |
+| `hardhat-contract-sizer` | No built-in replacement — remove; community `@solidstate/hardhat-contract-sizer` (peer `hardhat ^3.8.0`) is an option if sizing is needed                     |
 | `hardhat-tracer`         | `-v` / `-vvv` verbosity flag (emits execution traces)            |
 
 If the project uses `solidity-coverage` or `hardhat-gas-reporter`, remove them and update the relevant npm scripts or CI commands to use the corresponding flag instead (see step 6).
