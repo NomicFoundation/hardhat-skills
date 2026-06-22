@@ -4,7 +4,7 @@ Skip this entire phase if the project has no Solidity tests — look for `.t.sol
 
 ## Required dependency: the dry-run Foundry→HH3 skill
 
-This phase reuses the Foundry→Hardhat 3 migration procedure documented in the [dry-run-migrate-foundry-to-hh3](../../dry-run-migrate-foundry-to-hh3/SKILL.md) skill. **Read it in full before modifying any file**, then follow it end-to-end for the Solidity test migration. If that file is missing, stop and ask the user to provide it.
+This phase reuses the Foundry→Hardhat 3 migration procedure documented in the [migrate-foundry-to-hardhat](../../migrate-foundry-to-hardhat/SKILL.md) skill. **Read it in full before modifying any file**, then follow it end-to-end for the Solidity test migration.
 
 ## Completion gate (HARD STOP)
 
