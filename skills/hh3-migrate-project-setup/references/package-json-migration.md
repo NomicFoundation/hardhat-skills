@@ -73,7 +73,7 @@ Remove these categories of packages from `package.json`:
 - `solidity-coverage`
 - `hardhat-gas-reporter`
 - `hardhat-contract-sizer` (no built-in V3 replacement — just remove)
-- `hardhat-tracer` (no built-in replacement; V3 has a `-v` verbosity flag on the test task, but it is not a drop-in substitute)
+- `hardhat-tracer` (built-in replacement; V3 has a `-v` verbosity flag on the test task)
 - Hardhat plugin packages — any name matching `hardhat-*` or `@<scope>/hardhat-*`. This includes third-party scopes (e.g. `@primitivefi/hardhat-dodoc`), not just `@nomicfoundation/hardhat-*` and `@nomiclabs/hardhat-*`.
 - `@typechain/*`, `typechain` — Remove. The **mocha-ethers** toolbox bundles `@nomicfoundation/hardhat-typechain` to generate typed artifacts natively. The **viem** toolbox does *not* bundle it — viem projects get typed contracts via `@nomicfoundation/hardhat-viem` instead
 
