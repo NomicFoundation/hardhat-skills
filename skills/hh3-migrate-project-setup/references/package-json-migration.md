@@ -148,7 +148,7 @@ Several V2 plugins are now built into Hardhat V3. Coverage and gas reporting are
 | `solidity-coverage`      | `hardhat test --coverage` (global flag)                          |
 | `hardhat-gas-reporter`   | `hardhat test --gas-stats` (global flag)                         |
 | `hardhat-contract-sizer` | No built-in replacement — remove the package                     |
-| `hardhat-tracer`         | No built-in replacement — remove the package                     |
+| `hardhat-tracer`         | `-v` / `-vvv` verbosity flag (emits execution traces)            |
 
 If the project uses `solidity-coverage` or `hardhat-gas-reporter`, remove them and update the relevant npm scripts or CI commands to use the corresponding flag instead (see step 6).
 
