@@ -36,7 +36,7 @@ Before making changes, read and understand the existing project **thoroughly**:
 
 **IMPORTANT:** Migrating all configurations is KEY to the migration succeeding. Every section of `foundry.toml` must be accounted for — either mapped to a Hardhat equivalent, or explicitly documented as unsupported with a comment and issue link.
 
-After analyzing, write a structured summary to a file named `.claude/<project-name>-foundry-migration-analysis.md` (where `<project-name>` is the directory name of the project being migrated) in the repository root. Create the `.claude/` directory if it doesn't exist. The file includes:
+After analyzing, write a structured summary to a file named `hardhat-migration/<project-name>-foundry-migration-analysis.md` (where `<project-name>` is the directory name of the project being migrated) in the repository root. Create the `hardhat-migration/` directory if it doesn't exist. The file includes:
 
 - Every `foundry.toml` section and setting found
 - All profiles (`[profile.default]`, `[profile.ci]`, etc.) and their settings
@@ -461,7 +461,7 @@ If tests fail:
    - Some test failures are neither `UnsupportedCheatcode` nor fixable by editing the config — they indicate a behavioral difference or outright bug in Hardhat / EDR. These tests should **not** be modified, commented out, or worked around — the test code is correct Foundry-idiomatic code.
    - When you suspect a group of failures has the same root cause, **investigate the call chain** to confirm. Trace from the failing test function through any helpers or modifiers to identify exactly which cheatcode call returns unexpected results or throws unexpectedly.
    - **Group tests by root cause** — tests failing for the same reason should be treated as a single bug, not as separate issues.
-   - Once the root cause is confirmed, **write a structured bug report** to `.claude/bugs/<descriptive-slug>.md` (create the `.claude/bugs/` directory if needed). **Use a slug that describes the affected feature or cheatcode — do NOT prefix with `edr-` or `hardhat-`** (e.g. `vm-readCallers-prank-state.md`, not `edr-vm-readCallers-prank-state.md`). The responsible layer will be determined through the upstream filing process. The file should include:
+   - Once the root cause is confirmed, **write a structured bug report** to `hardhat-migration/bugs/<descriptive-slug>.md` (create the `hardhat-migration/bugs/` directory if needed). **Use a slug that describes the affected feature or cheatcode — do NOT prefix with `edr-` or `hardhat-`** (e.g. `vm-readCallers-prank-state.md`, not `edr-vm-readCallers-prank-state.md`). The responsible layer will be determined through the upstream filing process. The file should include:
      - Issue title suitable for filing as a GitHub issue on [NomicFoundation/hardhat](https://github.com/NomicFoundation/hardhat/issues) or [NomicFoundation/edr](https://github.com/NomicFoundation/edr/issues) depending on where the root cause lies
      - A self-contained minimal Solidity reproduction (small test contract + minimal `hardhat.config.ts`)
      - Steps to reproduce
@@ -491,13 +491,13 @@ When tests pass, **always show the full test output to the user** so they can ve
 
 ## Step 7: Migration report
 
-After compilation and tests complete (whether all pass or not), write the report to `.claude/<project-name>-hardhat-migration-report.md` in the repository root and present it to the user. The report must assess **feature parity** between Forge and Hardhat for this project and give a clear verdict.
+After compilation and tests complete (whether all pass or not), write the report to `hardhat-migration/<project-name>-hardhat-migration-report.md` in the repository root and present it to the user. The report must assess **feature parity** between Forge and Hardhat for this project and give a clear verdict.
 
 **Report structure:** The report uses numbered `##` sections. Conditional sections are omitted when empty — remaining sections are numbered contiguously (no gaps). The possible sections in order are:
 
 1. **Test Count Comparison** — always included
 2. **Feature Parity** — always included
-3. **Hardhat / EDR Bug Reports** — only if bugs were found in `.claude/bugs/`
+3. **Hardhat / EDR Bug Reports** — only if bugs were found in `hardhat-migration/bugs/`
 4. **Workarounds Applied** — always included
    - Sub-section: **UnsupportedCheatcode errors** — only if test functions were commented out
 5. **Foundry Cleanup Checklist** — always included
@@ -520,7 +520,7 @@ For each Forge feature **used by the project**, assess Hardhat 3 parity. Only in
 
 The Parity column uses four values — use them precisely, and always include the corresponding emoji:
 
-- ❌ **Bug** — the feature exists in Hardhat/EDR but behaves incorrectly relative to the Forge spec; a bug report has been filed in `.claude/bugs/`
+- ❌ **Bug** — the feature exists in Hardhat/EDR but behaves incorrectly relative to the Forge spec; a bug report has been filed in `hardhat-migration/bugs/`
 - 🚩 **Gap** — the feature is absent or unsupported in Hardhat (missing cheatcode, no equivalent config, etc.)
 - 🟡 **Partial** — the feature exists but with meaningful limitations (e.g. can only be set globally, not per-test)
 - ✅ **Full** — Hardhat behavior is equivalent to Forge
@@ -600,7 +600,7 @@ For each 🚩 **Gap** and ❌ **Bug**, populate the Workaround / Notes column wi
 
 **Before including any GitHub issue link**, fetch the issue URL and confirm its title and description are actually related to the feature being documented. Do not guess issue numbers. If no relevant issue exists, write "No tracking issue found — consider filing one" instead of leaving the cell empty or inventing a link.
 
-**Distinguish local bug reports from upstream issues.** When linking to a file in `.claude/bugs/`, use the link text **"Local bug report"** and add "(not yet filed upstream)" next to it — never "Bug report filed", which implies the issue has already been created in the upstream tracker. Only use "filed upstream" if you have actually opened a GitHub issue and have a real issue URL to link to.
+**Distinguish local bug reports from upstream issues.** When linking to a file in `hardhat-migration/bugs/`, use the link text **"Local bug report"** and add "(not yet filed upstream)" next to it — never "Bug report filed", which implies the issue has already been created in the upstream tracker. Only use "filed upstream" if you have actually opened a GitHub issue and have a real issue URL to link to.
 
 **Environment variables read by tests** (e.g., via `vm.envString`) are a configuration concern, not a feature parity issue. Handle them by setting the required env vars in the Hardhat script definitions in `package.json`. Do NOT add them as rows in the gap table.
 
@@ -610,9 +610,9 @@ For each 🚩 **Gap** and ❌ **Bug**, populate the Workaround / Notes column wi
 
 ### Hardhat / EDR bug reports (conditional — tests left failing)
 
-**Only include this section if behavioral bugs were identified in Step 6 (item 4).** If no bugs were found (no files written to `.claude/bugs/`), omit this section entirely from the report.
+**Only include this section if behavioral bugs were identified in Step 6 (item 4).** If no bugs were found (no files written to `hardhat-migration/bugs/`), omit this section entirely from the report.
 
-For each behavioral bug identified in Step 6 (item 4), reference the corresponding bug report file written to `.claude/bugs/`. These files are **drafts the user can file upstream** at [NomicFoundation/hardhat](https://github.com/NomicFoundation/hardhat/issues) or [NomicFoundation/edr](https://github.com/NomicFoundation/edr/issues) — the responsible layer depends on whether the root cause lies in Hardhat's test runner or in EDR. Use the heading `## N. Hardhat / EDR Bug Reports` (where N is the next section number).
+For each behavioral bug identified in Step 6 (item 4), reference the corresponding bug report file written to `hardhat-migration/bugs/`. These files are **drafts the user can file upstream** at [NomicFoundation/hardhat](https://github.com/NomicFoundation/hardhat/issues) or [NomicFoundation/edr](https://github.com/NomicFoundation/edr/issues) — the responsible layer depends on whether the root cause lies in Hardhat's test runner or in EDR. Use the heading `## N. Hardhat / EDR Bug Reports` (where N is the next section number).
 
 In the report:
 
@@ -675,7 +675,7 @@ The report header (immediately below the title) must contain:
 
 - **Hardhat version installed** — read from `devDependencies.hardhat` in `package.json`
 - **Migration date**
-- **Foundry analysis** — link to the analysis file from Step 1 using a relative path from the report file (both are in `.claude/`, so use just the filename: `[Foundry analysis](<project-name>-foundry-migration-analysis.md)`)
+- **Foundry analysis** — link to the analysis file from Step 1 using a relative path from the report file (both are in `hardhat-migration/`, so use just the filename: `[Foundry analysis](<project-name>-foundry-migration-analysis.md)`)
 - **Verdict** — one of the four values below, with the corresponding emoji
 - **Blockers** bullet list — ❌ for EDR bugs, 🚩 for gaps that prevent tests from running (commented-out tests, missing cheatcodes). Only include issues that directly block test execution or coverage.
 - **Notable gaps** bullet list — 🚩 / 🟡 for gaps and partial features that don't block tests but affect the project's workflow. **Only include Medium or High impact items** (as rated in the gap table) — Low impact gaps belong in the table only. Use the heading `### Notable gaps (non-blocking, medium+ impact)`. Omit the section entirely if no medium+ gaps exist.
@@ -714,7 +714,7 @@ For a Successful or Successful-with-gaps verdict, the top items typically come f
 
 ## Update an existing migration
 
-This flow is triggered when the argument is `update`. It assumes a previous migration has already been completed — the project has `hardhat.config.ts`, the analysis file (`.claude/<project-name>-foundry-migration-analysis.md`), and the migration report (`.claude/<project-name>-hardhat-migration-report.md`). The user may still have `foundry.toml` and other Foundry files around (kept intentionally — see the previous report's Foundry Cleanup Checklist), and the project's primary `package.json` scripts now run Hardhat.
+This flow is triggered when the argument is `update`. It assumes a previous migration has already been completed — the project has `hardhat.config.ts`, the analysis file (`hardhat-migration/<project-name>-foundry-migration-analysis.md`), and the migration report (`hardhat-migration/<project-name>-hardhat-migration-report.md`). The user may still have `foundry.toml` and other Foundry files around (kept intentionally — see the previous report's Foundry Cleanup Checklist), and the project's primary `package.json` scripts now run Hardhat.
 
 **Goal:** Bring the migration up to date — upgrade Hardhat, re-evaluate every gap/partial/bug in the report against the current Hardhat version, remove workarounds that are no longer needed, and regenerate the report.
 
@@ -722,7 +722,7 @@ Follow these steps in order.
 
 ### Update Step 1: Read existing state
 
-1. Read the existing migration report (`.claude/<project-name>-hardhat-migration-report.md`) and analysis file (`.claude/<project-name>-foundry-migration-analysis.md`).
+1. Read the existing migration report (`hardhat-migration/<project-name>-hardhat-migration-report.md`) and analysis file (`hardhat-migration/<project-name>-foundry-migration-analysis.md`).
 2. Read `hardhat.config.ts` and `package.json` to understand the current configuration.
 3. Read `foundry.toml` to cross-reference against the original Foundry settings.
 4. Note the currently installed Hardhat version from `package.json`.
@@ -854,7 +854,7 @@ Regenerate the migration report following the same structure as Step 7 of the or
 
 ### Update Step 7: Update the analysis file
 
-Review the analysis file (`.claude/<project-name>-foundry-migration-analysis.md`) and update any sections that reference Hardhat support status (e.g., inline config notes). The analysis file primarily documents the Foundry project structure and should not change much, but notes about Hardhat compatibility should reflect the current state.
+Review the analysis file (`hardhat-migration/<project-name>-foundry-migration-analysis.md`) and update any sections that reference Hardhat support status (e.g., inline config notes). The analysis file primarily documents the Foundry project structure and should not change much, but notes about Hardhat compatibility should reflect the current state.
 
 ## Reference: Common dependency mappings
 
