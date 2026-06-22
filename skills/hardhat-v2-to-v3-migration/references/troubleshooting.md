@@ -74,18 +74,7 @@ Common causes:
 
 ## Tests timeout or hang
 
-The `hre.network.create()` call is async. Common fixes:
-
-- Ensure all `before` blocks properly `await` the connection
-- Increase Mocha timeout if needed via the config:
-
-```ts
-test: {
-  mocha: {
-    timeout: 60_000, // 60 seconds
-  },
-},
-```
+The `hre.network.create()` call is async. Ensure all `before` blocks properly `await` the connection.
 
 ## Still stuck?
 
