@@ -11,7 +11,7 @@ Run these three steps in order. Each ends with a gate — run its checks in orde
 
 ## Step 1 — Environment file (domain: `env`)
 
-Create `.env` from an example template if one exists. Reference: [env-file-migration.md](references/env-file-migration.md).
+Create `.env` from an example template if one exists, so the variables the V3 config reads via `configVariable()` (RPC URLs, keys) have values during the migration. This is purely to keep the project's config working — `configVariable()` reads from environment variables by default, so **the migration does not use the encrypted keystore** (an optional post-migration choice). Reference: [env-file-migration.md](references/env-file-migration.md).
 
 - [ ] `.env` created from `.env.example`/`.sample`/`.template`, or skipped (no template, or `.env` already present)
 

@@ -2,11 +2,12 @@
 
 This example shows a realistic V3 config with all the key patterns in one place — plugin imports, declarative plugin registration, typed networks with `configVariable`, solidity profiles, and test path configuration:
 
+> **No keystore (intentional).** This template omits `@nomicfoundation/hardhat-keystore` on purpose — `configVariable` reads from env vars by default, so the keystore isn't needed (it's an optional post-migration step). See "Migrate network configuration" in [hardhat-config-migration.md](hardhat-config-migration.md) for details.
+
 ```ts
 import { configVariable, defineConfig } from "hardhat/config";
 import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
 import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha";
-import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
 import HardhatViem from "@nomicfoundation/hardhat-viem";
 import HardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
 import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
@@ -54,7 +55,6 @@ export default defineConfig({
   tasks: [],
   plugins: [
     hardhatEthersPlugin,
-    HardhatKeystore,
     HardhatMochaTestRunner,
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,

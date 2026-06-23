@@ -146,7 +146,7 @@ For Viem projects, use `@nomicfoundation/hardhat-toolbox-viem` instead.
 
 ## 5. Migrate network configuration
 
-V3 networks use explicit types. Keep `process.env` for now — this lets you validate the network config works before switching to `configVariable()` in a separate step outside this reference:
+V3 networks use explicit types. Read secrets and RPC URLs with `configVariable("X")` rather than raw `process.env.X`. By default `configVariable` resolves from environment variables — the same values the project's `.env` provides — so you are still "using env variables." The migration does **not** use the encrypted keystore (see the note below). `configVariable` also resolves **lazily** (only when the value is actually used), so an unset value doesn't break config loading the way raw `process.env` can.
 
 **V2 (old):**
 
@@ -159,10 +159,10 @@ networks: {
 }
 ```
 
-**V3 (first pass — keep process.env for validation):**
+**V3 (new):**
 
 ```ts
-import { defineConfig } from "hardhat/config";
+import { configVariable, defineConfig } from "hardhat/config";
 
 export default defineConfig({
   networks: {
@@ -173,14 +173,16 @@ export default defineConfig({
     sepolia: {
       type: "http",
       chainType: "l1",
-      url: process.env.SEPOLIA_RPC_URL!,
-      accounts: [process.env.SEPOLIA_PRIVATE_KEY!],
+      url: configVariable("SEPOLIA_RPC_URL"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
   },
 });
 ```
 
-> **Important:** If any network URL can be empty or unset at config load time, you **must** use `configVariable()` instead of `process.env` to avoid HHE15 validation errors. See the full V3 config example in `config-example.md` for the recommended pattern with `configVariable()`.
+> **The migration MUST NOT use the keystore.** `configVariable` reads from environment variables by default, so the project's `.env` is all the config needs. Do **not** register `@nomicfoundation/hardhat-keystore` in `plugins[]` and do **not** run `npx hardhat keystore set` as part of the migration. Encrypted secret storage is an optional, **post-migration** step the user can choose later — the variable names already match, so adopting it then needs no config change.
+>
+> **Loading `.env`:** Hardhat does **not** auto-load `.env`, so for `configVariable` to see those values, either add `import "dotenv/config";` at the top of `hardhat.config.ts` or export the variables in your shell.
 
 Key changes:
 
@@ -262,7 +264,7 @@ etherscan: {
 ```ts
 verify: {
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY || "",
+    apiKey: configVariable("ETHERSCAN_API_KEY"),
   },
 },
 chainDescriptors: {
