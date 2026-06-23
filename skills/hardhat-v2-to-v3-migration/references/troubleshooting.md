@@ -4,10 +4,11 @@ Common errors encountered during migration and how to fix them.
 
 ## "Cannot use require() in ES module"
 
-The project is now ESM (`"type": "module"` in package.json). All `require()` calls must be converted:
+The project is now ESM (`"type": "module"` in package.json), so every `.js` file is parsed as an ES module and `require()`/`module.exports` throw at runtime. Convert to ESM:
 
-- **Recommended:** Replace `require()` with `import` and `module.exports` with `export`
-- **Quick fix:** Rename the file to `.cjs` to keep CommonJS syntax
+- **Do this:** Replace `require()` with `import` and `module.exports` with `export`. This is the supported path and the goal of the migration.
+- **Fallback (scripts, tests, and tool configs *only*):** If converting a file is impractical, rename it from `.js` to `.cjs` to keep CommonJS syntax — Hardhat officially supports CommonJS in scripts and tests, and tool configs (`.eslintrc.js`, `.prettierrc.js`, etc.) often have to be `.cjs` because the tool has no ESM config. See [esm-migration.md](../../hh3-migrate-source-files/references/esm-migration.md) §1 and §8.
+- **Never rename the Hardhat config to `.cjs`.** `hardhat.config.ts`/`.js` must be a *true* ES module (`import` / `export default`) — Hardhat 3 dropped CommonJS config loading, and a `.cjs` config produces a more confusing failure. If the error points at the config file, convert it; do not rename it.
 
 ## "ERR_MODULE_NOT_FOUND" for relative imports
 
