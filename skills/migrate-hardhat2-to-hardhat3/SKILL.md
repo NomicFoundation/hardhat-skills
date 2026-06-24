@@ -17,28 +17,28 @@ This skill runs the full V2→V3 migration as **six sequential phases**. **A sin
 
 ## Phases
 
-Run each phase by following its skill. Each ends with a gate; the checklist below is your confirmation that the phase is truly done before moving on.
+Run each phase by following its phase guide. Each ends with a gate; the checklist below is your confirmation that the phase is truly done before moving on.
 
-### Phase 1 — Project Setup → [hh3-migrate-project-setup](../hh3-migrate-project-setup/SKILL.md)
+### Phase 1 — Project Setup → [phase guide](references/phase-1-project-setup/phase.md)
 Creates `.env` from templates, updates `tsconfig.json` for ESM, converts `package.json` (ESM flag, V2→V3 dependency swap, scripts).
 
 - [ ] Phase reported all gates passed
 - [ ] `npx hardhat --version` runs and prints a `3.x` version (e.g. `3.9.0`)
 - [ ] Checkpoint commit: `[CHECK] HH3 project setup: env, tsconfig, package.json`
 
-### Phase 2 — Config → [hh3-migrate-config](../hh3-migrate-config/SKILL.md)
+### Phase 2 — Config → [phase guide](references/phase-2-config/phase.md)
 Rewrites `hardhat.config.ts` to V3 declarative `defineConfig` (plugins, networks, custom tasks, solidity, verify, test settings).
 
 - [ ] Phase reported all gates passed
 - [ ] Checkpoint commit: `[CHECK] HH3 config: declarative defineConfig (solidity, networks, plugins, tasks, verify)`
 
-### Phase 3 — Solidity Tests → [hh3-migrate-solidity-tests](../hh3-migrate-solidity-tests/SKILL.md)
+### Phase 3 — Solidity Tests → [phase guide](references/phase-3-solidity-tests/phase.md)
 Migrates `.t.sol` test files to V3 conventions. May need `config` changes (e.g. `paths.tests.solidity` to relocate Solidity test files, or `paths.sources.solidity` if test contracts must be compiled as sources).
 
 - [ ] `npx hardhat test solidity` passes with zero errors (or skipped — no Solidity tests)
 - [ ] Checkpoint commit: `[CHECK] HH3 solidity test migration`
 
-### Phase 4 — Source Files → [hh3-migrate-source-files](../hh3-migrate-source-files/SKILL.md)
+### Phase 4 — Source Files → [phase guide](references/phase-4-source-files/phase.md)
 Converts all `.ts` (and any CommonJS `.js`) source files CJS→ESM and updates V2 API calls to V3 (+ TypeChain import fixes).
 
 - [ ] Phase reported all gates passed
@@ -46,7 +46,7 @@ Converts all `.ts` (and any CommonJS `.js`) source files CJS→ESM and updates V
 - [ ] `npx hardhat test solidity` still passes (regression check — source changes can break Solidity tests)
 - [ ] Checkpoint commit: `[CHECK] HH3 source file migration: ESM conversion, V3 API updates, and TypeChain import fixes`
 
-### Phase 5 — Test Fix-Up → [hh3-migrate-tests](../hh3-migrate-tests/SKILL.md)
+### Phase 5 — Test Fix-Up → [phase guide](references/phase-5-test-fixup/phase.md)
 Gets the `.ts` test suite passing under V3.
 
 - [ ] `npx tsc --noEmit` still passes with zero errors
@@ -54,7 +54,7 @@ Gets the `.ts` test suite passing under V3.
 - [ ] `npx hardhat test solidity` still passes (regression check — test-helper/config fixes can break Solidity tests)
 - [ ] Checkpoint commit: `[CHECK] HH3 test suite fix-up: all tests passing under V3`
 
-### Phase 6 — Script Validation → [hh3-migrate-validate-scripts](../hh3-migrate-validate-scripts/SKILL.md)
+### Phase 6 — Script Validation → [phase guide](references/phase-6-validate-scripts/phase.md)
 Interactive: the user picks `package.json` scripts to validate; the skill runs and fixes them one at a time.
 
 - [ ] Phase reported all gates passed

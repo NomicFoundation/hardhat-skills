@@ -1,0 +1,21 @@
+# Phase 2 — Config
+
+Phase 2 of the V2→V3 migration. Follow [migration-conventions.md](../migration-conventions.md) first.
+
+**Prerequisites:** `package.json` has `"type": "module"` + Hardhat V3 installed; `tsconfig.json` set to a node-family `"module"` (`"nodenext"`, or `"node20"` if TypeScript `>= 5.9`) (Phase 1 done if running the full migration).
+
+## Step — Migrate hardhat.config (domain: `config`)
+
+Rewrite `hardhat.config.ts` to V3 declarative format with `defineConfig`: solidity settings, plugins, networks, custom tasks, verify, and test settings.
+
+References:
+- [hardhat-config-migration.md](hardhat-config-migration.md) — the step-by-step guide (V2↔V3 mappings, networks, plugins, etherscan, mocha, fuzz/invariant)
+- [task-migration.md](task-migration.md) — custom task builder pattern; deciding which tasks still need migrating
+- [config-example.md](config-example.md) — a complete V3 config to use as a template
+- [troubleshooting.md](../troubleshooting.md) — common load/validation errors
+
+**Gate:**
+
+- [ ] New `hardhat.config.ts` created with `defineConfig`
+- [ ] `npx tsc --noEmit` run **unfiltered** against a tsconfig that includes `hardhat.config.ts` (a usage/help banner means tsc never ran → FAILURE; a `tsconfig.json`/compiler-option diagnostic such as `TS6046`/`TS5070` — e.g. `"module": "node20"` on TypeScript `< 5.9` — means the tsconfig is broken and module-resolution checks silently don't run → FAILURE, fix the tsconfig first) and reports no error referencing `hardhat.config.ts` — see [hardhat-config-migration.md](hardhat-config-migration.md) §8a (do **not** rely on a filtered `| grep`, which false-passes when tsc never ran)
+- [ ] `npx hardhat --help` runs without errors

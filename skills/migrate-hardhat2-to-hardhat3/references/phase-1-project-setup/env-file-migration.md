@@ -26,4 +26,4 @@ set -a; source .env 2>/dev/null; set +a
 npx hardhat test
 ```
 
-For the full secret-handling rules — `configVariable`, the keystore (incl. `npx hardhat keystore set --dev <KEY>` when a test needs a missing value), env-var precedence, and CI — see "Migrate network configuration" in [hardhat-config-migration.md](../../hh3-migrate-config/references/hardhat-config-migration.md).
+For the full secret-handling rules — `configVariable`, the keystore (incl. `npx hardhat keystore set --dev <KEY>` when a test needs a missing value), env-var precedence, and CI — see "Migrate network configuration" in [hardhat-config-migration.md](../phase-2-config/hardhat-config-migration.md).

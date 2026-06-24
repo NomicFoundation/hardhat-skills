@@ -4,7 +4,7 @@ Skip this entire phase if the project has no Solidity tests — look for `.t.sol
 
 ## Required dependency: the dry-run Foundry→HH3 skill
 
-This phase reuses the Foundry→Hardhat 3 migration procedure documented in the [migrate-foundry-to-hardhat](../../migrate-foundry-to-hardhat/SKILL.md) skill. **Read it in full before modifying any file**, then follow it end-to-end for the Solidity test migration.
+This phase reuses the Foundry→Hardhat 3 migration procedure documented in the [migrate-foundry-to-hardhat](../../../migrate-foundry-to-hardhat/SKILL.md) skill. **Read it in full before modifying any file**, then follow it end-to-end for the Solidity test migration.
 
 ## Completion gate (HARD STOP)
 
@@ -18,7 +18,7 @@ If it fails, you are not done — fix the errors and re-run until it passes with
 
 ## Reduce fuzz/invariant runs during migration
 
-Solidity fuzz/invariant tests are slow and noisy while you iterate on compilation and logic fixes. Temporarily lower their iteration counts, then restore production values once the migration is stable. The settings and snippet live in the config guide — see [hardhat-config-migration.md](../../hh3-migrate-config/references/hardhat-config-migration.md) § "Reduced fuzz/invariant runs (MANDATORY)".
+Solidity fuzz/invariant tests are slow and noisy while you iterate on compilation and logic fixes. Temporarily lower their iteration counts, then restore production values once the migration is stable. The settings and snippet live in the config guide — see [hardhat-config-migration.md](../phase-2-config/hardhat-config-migration.md) § "Reduced fuzz/invariant runs (MANDATORY)".
 
 ## Common V2 → V3 issues
 
@@ -75,4 +75,4 @@ This preserves the original test intent and keeps the migration minimal.
 
 **Root cause:** V3's default EDR network sets `allowUnlimitedContractSize: false`; harness contracts often exceed the EIP-170 24KB limit when deployed via the EDR provider backing the mocha/ethers connection.
 
-**Fix:** A `config`-domain change — add `allowUnlimitedContractSize: true` to the default network in `hardhat.config.ts` (in sub-agent mode, hand this off to the config domain). See [hardhat-config-migration.md](../../hh3-migrate-config/references/hardhat-config-migration.md) § "Default network: `allowUnlimitedContractSize`" for the exact snippet.
+**Fix:** A `config`-domain change — add `allowUnlimitedContractSize: true` to the default network in `hardhat.config.ts` (in sub-agent mode, hand this off to the config domain). See [hardhat-config-migration.md](../phase-2-config/hardhat-config-migration.md) § "Default network: `allowUnlimitedContractSize`" for the exact snippet.

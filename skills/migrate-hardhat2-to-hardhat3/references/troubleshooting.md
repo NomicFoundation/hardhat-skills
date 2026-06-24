@@ -7,7 +7,7 @@ Common errors encountered during migration and how to fix them.
 The project is now ESM (`"type": "module"` in package.json), so every `.js` file is parsed as an ES module and `require()`/`module.exports` throw at runtime. Convert to ESM:
 
 - **Do this:** Replace `require()` with `import` and `module.exports` with `export`. This is the supported path and the goal of the migration.
-- **Fallback (scripts, tests, and tool configs *only*):** If converting a file is impractical, rename it from `.js` to `.cjs` to keep CommonJS syntax — Hardhat officially supports CommonJS in scripts and tests, and tool configs (`.eslintrc.js`, `.prettierrc.js`, etc.) often have to be `.cjs` because the tool has no ESM config. See [esm-migration.md](../../hh3-migrate-source-files/references/esm-migration.md) §1 and §8.
+- **Fallback (scripts, tests, and tool configs *only*):** If converting a file is impractical, rename it from `.js` to `.cjs` to keep CommonJS syntax — Hardhat officially supports CommonJS in scripts and tests, and tool configs (`.eslintrc.js`, `.prettierrc.js`, etc.) often have to be `.cjs` because the tool has no ESM config. See [esm-migration.md](phase-4-source-files/esm-migration.md) §1 and §8.
 - **Never rename the Hardhat config to `.cjs`.** `hardhat.config.ts`/`.js` must be a *true* ES module (`import` / `export default`) — Hardhat 3 dropped CommonJS config loading, and a `.cjs` config produces a more confusing failure. If the error points at the config file, convert it; do not rename it.
 
 ## "ERR_MODULE_NOT_FOUND" for relative imports
@@ -36,7 +36,7 @@ url: process.env.SOME_RPC_URL || "";
 url: RPC_URL; // where RPC_URL defaults to ""
 ```
 
-**Fix:** Replace `process.env.X || ""` with `configVariable("X")`, which defers resolution to connection time. See the full V3 config example using `configVariable()` in [config-example.md](../../hh3-migrate-config/references/config-example.md).
+**Fix:** Replace `process.env.X || ""` with `configVariable("X")`, which defers resolution to connection time. See the full V3 config example using `configVariable()` in [config-example.md](phase-2-config/config-example.md).
 
 ## "hre.network.provider is not a function" / HRE API changes
 
@@ -55,11 +55,11 @@ grep -rn 'from "@nomicfoundation/hardhat-network-helpers"' test/ --include="*.ts
 const connection = await hre.network.create();
 ```
 
-**Common HRE property migrations:** See the full migration table in [hardhat-config-migration.md](../../hh3-migrate-config/references/hardhat-config-migration.md), section "Detailed HRE Property Migrations".
+**Common HRE property migrations:** See the full migration table in [hardhat-config-migration.md](phase-2-config/hardhat-config-migration.md), section "Detailed HRE Property Migrations".
 
 ## "Plugin X is not compatible with Hardhat 3"
 
-Check the Plugin Migration Map in [package-json-migration.md](../../hh3-migrate-project-setup/references/package-json-migration.md) for the V3 equivalent. If no V3 version exists:
+Check the Plugin Migration Map in [package-json-migration.md](phase-1-project-setup/package-json-migration.md) for the V3 equivalent. If no V3 version exists:
 
 1. Check https://github.com/NomicFoundation/hardhat/issues/7207 for updates
 2. Remove the plugin and note the gap for the user
@@ -69,7 +69,7 @@ Check the Plugin Migration Map in [package-json-migration.md](../../hh3-migrate-
 
 Common causes:
 
-- **Wrong tsconfig settings:** See [tsconfig-migration.md](../../hh3-migrate-project-setup/references/tsconfig-migration.md), section "1. Update compilerOptions for ESM" for the required settings
+- **Wrong tsconfig settings:** See [tsconfig-migration.md](phase-1-project-setup/tsconfig-migration.md), section "1. Update compilerOptions for ESM" for the required settings
 - **Stale type packages / deps:** After dropping a V2 plugin, also remove any now-unused `@types/*` packages or leftover dev-deps it pulled in — stale entries can shadow or conflict with V3 types. (Most Hardhat plugins ship their own types via module augmentation rather than a separate `@types/` package, so this mainly applies to standalone typed deps.)
 - **Missing `.js` extensions:** ESM + TypeScript requires `.js` extensions on relative imports (see ERR_MODULE_NOT_FOUND above)
 

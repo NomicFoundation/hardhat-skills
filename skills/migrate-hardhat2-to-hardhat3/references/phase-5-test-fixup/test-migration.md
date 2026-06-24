@@ -5,9 +5,9 @@ Fix `.ts` test failures caused by the V2→V3 migration. File migration (ESM syn
 **Do not edit already-ESM `.js` test files — only fix `.ts` test files.** (Any CommonJS `.js` test files were converted to ESM or renamed to `.cjs` in Phase 4.)
 
 Read these first:
-- [esm-migration.md](../../hh3-migrate-source-files/references/esm-migration.md) — ESM patterns in test files
-- [hardhat-api-migration.md](../../hh3-migrate-source-files/references/hardhat-api-migration.md) — V2→V3 API mapping for test code
-- [troubleshooting.md](../../migrate-hardhat2-to-hardhat3/references/troubleshooting.md) — common errors and fixes
+- [esm-migration.md](../phase-4-source-files/esm-migration.md) — ESM patterns in test files
+- [hardhat-api-migration.md](../phase-4-source-files/hardhat-api-migration.md) — V2→V3 API mapping for test code
+- [troubleshooting.md](../troubleshooting.md) — common errors and fixes
 
 ## Test command
 
@@ -30,7 +30,7 @@ Always run individual files with `npx hardhat test {filePath}`. Don't use `packa
 
 **Chai matcher signatures** — `.to.be.reverted` → `.to.revert(ethers)`; `.to.not.be.reverted` → `.to.not.revert(ethers)`; `.changeEtherBalance(s)` / `.changeTokenBalance(s)` now take `ethers` as first arg; `.revertedWithoutReason()` → `.revertedWithoutReason(ethers)`. (`.emit` is **unchanged** — still `.emit(contract, eventName)`, no `ethers` arg.)
 
-**Config / package** — missing plugin in `hardhat.config.ts`; missing dependency in `package.json`; mocha timeout too low; tests hang on startup → likely a mocha root-hooks file with HRE dependencies statically imported in the config (see [hardhat-config-migration.md](../../hh3-migrate-config/references/hardhat-config-migration.md) § "Warning: Mocha root hooks with HRE dependencies").
+**Config / package** — missing plugin in `hardhat.config.ts`; missing dependency in `package.json`; mocha timeout too low; tests hang on startup → likely a mocha root-hooks file with HRE dependencies statically imported in the config (see [hardhat-config-migration.md](../phase-2-config/hardhat-config-migration.md) § "Warning: Mocha root hooks with HRE dependencies").
 
 **Test-specific** — business logic dependent on V2 behavior; fixtures needing restructuring; failures that don't match the patterns above.
 
