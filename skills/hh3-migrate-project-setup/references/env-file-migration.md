@@ -17,4 +17,13 @@ Before starting the migration, check if the project contains an example environm
 
 3. If a `.env` file already exists, skip this step — do not overwrite it.
 
-This seeds `.env` with the variable names the Hardhat config and deployment scripts expect. The V3 config reads these via `configVariable("X")`, which resolves from environment variables by default — so `.env` is all the config needs to keep working through the migration, and **the migration does not use the encrypted keystore** (an optional post-migration choice). Example files usually ship with empty placeholders, so fill in any real values the validation steps need. Note: Hardhat does not auto-load `.env` — the values are only read if the config imports a loader such as `dotenv/config`.
+This seeds `.env` with the variable names the Hardhat config and deployment scripts expect, read via `configVariable("X")` (resolves from environment variables by default). Fill in any real values the validation steps need.
+
+Hardhat does **not** auto-load `.env`, so do **not** add `import "dotenv/config"` to `hardhat.config.ts` — load `.env` at the shell when a command needs the values:
+
+```bash
+set -a; source .env 2>/dev/null; set +a
+npx hardhat test
+```
+
+For the full secret-handling rules — `configVariable`, the keystore (incl. `npx hardhat keystore set --dev <KEY>` when a test needs a missing value), env-var precedence, and CI — see "Migrate network configuration" in [hardhat-config-migration.md](../../hh3-migrate-config/references/hardhat-config-migration.md).

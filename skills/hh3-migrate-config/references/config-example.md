@@ -2,7 +2,7 @@
 
 This example shows a realistic V3 config with all the key patterns in one place — plugin imports, declarative plugin registration, typed networks with `configVariable`, solidity profiles, and test path configuration:
 
-> **No keystore (intentional).** This template omits `@nomicfoundation/hardhat-keystore` on purpose — `configVariable` reads from env vars by default, so the keystore isn't needed (it's an optional post-migration step). See "Migrate network configuration" in [hardhat-config-migration.md](hardhat-config-migration.md) for details.
+> **`configVariable` for secrets, keystore registered (empty), no `dotenv/config`.** This individual-plugin config lists `@nomicfoundation/hardhat-keystore` in `plugins[]` explicitly (the toolbox would auto-register it). For the rationale — env-var precedence, lazy resolution, `.env` loading, and the keystore workflow — see "Migrate network configuration" in [hardhat-config-migration.md](hardhat-config-migration.md).
 
 ```ts
 import { configVariable, defineConfig } from "hardhat/config";
@@ -16,6 +16,7 @@ import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matc
 import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import hardhatKeystore from "@nomicfoundation/hardhat-keystore";
 import hardhatLedger from "@nomicfoundation/hardhat-ledger";
 
 export default defineConfig({
@@ -64,6 +65,7 @@ export default defineConfig({
     hardhatChaiMatchersPlugin,
     hardhatTypechain,
     hardhatIgnitionViem,
+    hardhatKeystore,
     hardhatLedger,
   ],
   paths: {

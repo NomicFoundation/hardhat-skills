@@ -146,7 +146,7 @@ For Viem projects, use `@nomicfoundation/hardhat-toolbox-viem` instead.
 
 ## 5. Migrate network configuration
 
-V3 networks use explicit types. Read secrets and RPC URLs with `configVariable("X")` rather than raw `process.env.X`. By default `configVariable` resolves from environment variables — the same values the project's `.env` provides — so you are still "using env variables." The migration does **not** use the encrypted keystore (see the note below). `configVariable` also resolves **lazily** (only when the value is actually used), so an unset value doesn't break config loading the way raw `process.env` can.
+V3 networks use explicit types. Read secrets and RPC URLs with `configVariable("X")` rather than raw `process.env.X`. `configVariable` resolves from environment variables by default — the same values the project's `.env` provides — and resolves **lazily** (only when the value is actually used), so an unset value doesn't break config loading the way raw `process.env` can. The keystore plugin is registered (the toolbox bundles it) but the migration leaves it empty — see the note below.
 
 **V2 (old):**
 
@@ -180,9 +180,20 @@ export default defineConfig({
 });
 ```
 
-> **The migration MUST NOT use the keystore.** `configVariable` reads from environment variables by default, so the project's `.env` is all the config needs. Do **not** register `@nomicfoundation/hardhat-keystore` in `plugins[]` and do **not** run `npx hardhat keystore set` as part of the migration. Encrypted secret storage is an optional, **post-migration** step the user can choose later — the variable names already match, so adopting it then needs no config change.
+> **Secret handling — three rules:**
 >
-> **Loading `.env`:** Hardhat does **not** auto-load `.env`, so for `configVariable` to see those values, either add `import "dotenv/config";` at the top of `hardhat.config.ts` or export the variables in your shell.
+> 1. **Use `configVariable("X")`** for every secret and URL (never raw `process.env.X`).
+> 2. **Keep the keystore plugin registered** — the toolbox auto-registers `@nomicfoundation/hardhat-keystore`; an individual-plugin config lists it in `plugins[]`. Leave it empty: `npx hardhat keystore set` is interactive and handles the user's real secrets, so populating it is always a **user** step, never the agent's.
+> 3. **Do not add `import "dotenv/config"`** to `hardhat.config.ts`.
+>
+> **Why:** `configVariable` reads `process.env` (env vars take precedence over the keystore) and resolves **lazily**, so the migration's own checks (`build`/`--help`/`tsc`) never need a value — registering an empty keystore changes nothing. Hardhat does **not** auto-load `.env`, so when you run something that *does* resolve values (e.g. tests that connect to a network), load `.env` at the shell — it stays out of the committed config:
+>
+> ```bash
+> set -a; source .env 2>/dev/null; set +a
+> npx hardhat test
+> ```
+>
+> If a test still needs a missing `configVariable`, tell the user to add it to the **dev keystore**: `npx hardhat keystore set --dev <KEY>` (read by Solidity tests, no password; the user types the secret). For production secrets post-migration, `npx hardhat keystore set <KEY>`. CI always uses env vars — the keystore is bypassed there.
 
 Key changes:
 
