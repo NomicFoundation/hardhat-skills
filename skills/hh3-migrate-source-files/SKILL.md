@@ -3,7 +3,7 @@ name: hh3-migrate-source-files
 description: Convert all TypeScript/JavaScript source files from CommonJS to ESM and update Hardhat V2 API calls to their V3 equivalents — covers require-to-import, module.exports-to-export, .js extensions, __dirname/__filename, network helpers, chai matcher changes, TypeChain import verification, and library linking paths. Use when converting a project to ESM, updating hardhat imports, fixing typechain for v3, or migrating hre.ethers usage.
 ---
 
-Phase 4 of the V2→V3 migration. Follow [migration-conventions.md](../hardhat-v2-to-v3-migration/references/migration-conventions.md) first.
+Phase 4 of the V2→V3 migration. Follow [migration-conventions.md](../migrate-hardhat2-to-hardhat3/references/migration-conventions.md) first.
 
 **Prerequisites:** Phases 1–2 done (ESM, V3 installed, `hardhat.config.ts` on `defineConfig`).
 
@@ -37,7 +37,7 @@ If a file fails to compile because an imported dependency hasn't been migrated y
 
 **Then rename the CJS tool-config files** from Step 1: rename each `module.exports` `.js` config to `.cjs` and update every reference to the old filename in `package.json` and CI scripts. See [esm-migration.md](references/esm-migration.md) §8 for which to rename and which to leave (files already on `export default`, or tools using `.json`/`.yaml` config).
 
-**Large projects (sub-agent fan-out):** independent leaf modules can be split across sub-agents, but **import-coupled files must stay on one agent** because of the recursive dependency-first rule above, and the `npx tsc --noEmit` / `npx hardhat build` gate is a global join point all agents must pass. Fan out only past the scale trigger in [migration-conventions.md](../hardhat-v2-to-v3-migration/references/migration-conventions.md) ("Optional: sub-agent fan-out"); below it, stay single-agent.
+**Large projects (sub-agent fan-out):** independent leaf modules can be split across sub-agents, but **import-coupled files must stay on one agent** because of the recursive dependency-first rule above, and the `npx tsc --noEmit` / `npx hardhat build` gate is a global join point all agents must pass. Fan out only past the scale trigger in [migration-conventions.md](../migrate-hardhat2-to-hardhat3/references/migration-conventions.md) ("Optional: sub-agent fan-out"); below it, stay single-agent.
 
 **Gate:**
 

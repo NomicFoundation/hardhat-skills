@@ -3,7 +3,7 @@ name: hh3-migrate-project-setup
 description: Set up a Hardhat V2 project for V3 migration — create .env from templates, update tsconfig.json for ESM compatibility, and convert package.json (ESM, V2→V3 dependency swap, npm script updates). Use when upgrading Hardhat dependencies, switching to ESM, or preparing a project for Hardhat V3. Also triggers for "update package.json for hardhat 3", "set up tsconfig for ESM", or "hardhat 3 dependencies".
 ---
 
-Phase 1 of the V2→V3 migration. Follow [migration-conventions.md](../hardhat-v2-to-v3-migration/references/migration-conventions.md) first (rules, package-manager detection, gates, optional parallel execution).
+Phase 1 of the V2→V3 migration. Follow [migration-conventions.md](../migrate-hardhat2-to-hardhat3/references/migration-conventions.md) first (rules, package-manager detection, gates, optional parallel execution).
 
 **Prerequisites:** Node.js v22.13.0+ (blocking — stop and tell the user if lower); a Hardhat V2 project with `hardhat` in `package.json`.
 

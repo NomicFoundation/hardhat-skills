@@ -12,7 +12,7 @@ If the version is below v22.13.0, **stop and alert the user**. This is a blockin
 
 ### Detect the project's package manager
 
-Use the lockfile to pick the package manager, and use it for **every** install/add/remove command throughout the migration — mixing them creates conflicting lockfiles and corrupts `node_modules` (see [migration-conventions.md](../../hardhat-v2-to-v3-migration/references/migration-conventions.md)): `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `package-lock.json` → npm.
+Use the lockfile to pick the package manager, and use it for **every** install/add/remove command throughout the migration — mixing them creates conflicting lockfiles and corrupts `node_modules` (see [migration-conventions.md](../../migrate-hardhat2-to-hardhat3/references/migration-conventions.md)): `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `package-lock.json` → npm.
 
 ## 0. Pre-migration Audit
 

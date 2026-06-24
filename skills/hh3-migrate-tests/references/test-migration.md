@@ -7,7 +7,7 @@ Fix `.ts` test failures caused by the V2→V3 migration. File migration (ESM syn
 Read these first:
 - [esm-migration.md](../../hh3-migrate-source-files/references/esm-migration.md) — ESM patterns in test files
 - [hardhat-api-migration.md](../../hh3-migrate-source-files/references/hardhat-api-migration.md) — V2→V3 API mapping for test code
-- [troubleshooting.md](../../hardhat-v2-to-v3-migration/references/troubleshooting.md) — common errors and fixes
+- [troubleshooting.md](../../migrate-hardhat2-to-hardhat3/references/troubleshooting.md) — common errors and fixes
 
 ## Test command
 

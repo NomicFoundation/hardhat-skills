@@ -1,5 +1,5 @@
 ---
-name: hardhat-v2-to-v3-migration
+name: migrate-hardhat2-to-hardhat3
 description: Systematically migrate a Hardhat V2 project to Hardhat V3, covering core changes (ESM, declarative config, hooks system, network connections) and the full plugin ecosystem (hardhat-deploy, hardhat-verify, @openzeppelin/hardhat-upgrades, and others), coverage tools, and test migration. Use when upgrading any production Hardhat V2 repository to V3.
 ---
 

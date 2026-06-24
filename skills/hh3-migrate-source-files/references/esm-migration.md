@@ -2,7 +2,7 @@
 
 This reference covers converting all non-config source files from CJS to ESM. Phase 1 already set `"type": "module"` in package.json and updated tsconfig.json — this phase handles the downstream impact on every `.ts` source file.
 
-The hardhat config is out of scope (the `config` domain handles it). See [troubleshooting.md](../../hardhat-v2-to-v3-migration/references/troubleshooting.md) for common ESM error diagnosis.
+The hardhat config is out of scope (the `config` domain handles it). See [troubleshooting.md](../../migrate-hardhat2-to-hardhat3/references/troubleshooting.md) for common ESM error diagnosis.
 
 ## Table of Contents
 
@@ -21,7 +21,7 @@ The hardhat config is out of scope (the `config` domain handles it). See [troubl
 
 ## 1. Scope boundaries
 
-This phase owns `.ts` source files **and** any `.js` source files that still use CommonJS syntax (the `esm` domain in the [domain table](../../hardhat-v2-to-v3-migration/references/migration-conventions.md)). Phase 1 set `"type": "module"`, so a `.js` file using `require()`/`module.exports` **no longer runs** — Node throws `require is not defined in ES module scope` the moment it executes.
+This phase owns `.ts` source files **and** any `.js` source files that still use CommonJS syntax (the `esm` domain in the [domain table](../../migrate-hardhat2-to-hardhat3/references/migration-conventions.md)). Phase 1 set `"type": "module"`, so a `.js` file using `require()`/`module.exports` **no longer runs** — Node throws `require is not defined in ES module scope` the moment it executes.
 
 **Handle each source file by what it already is:**
 
