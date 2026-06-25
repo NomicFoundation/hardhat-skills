@@ -21,3 +21,11 @@ Companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-to
 ### hardhat-toolbox-mocha-ethers
 
 Companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-mocha-ethers`. Covers ethers helpers on `network.create()`, contract interaction, TypeChain-typed contract instances, and chai matchers.
+
+### migrate-hardhat2-to-hardhat3
+
+Migrate a Hardhat 2 project to Hardhat 3, covering core changes (ESM, declarative config, hooks system, network connections), the plugin ecosystem (hardhat-verify, @openzeppelin/hardhat-upgrades, and others) and test migration.
+
+### migrate-foundry-to-hardhat
+
+Migrate a Foundry project to Hardhat 3, covering the build system and dependencies, Solidity test migration, coverage and gas reporting.
