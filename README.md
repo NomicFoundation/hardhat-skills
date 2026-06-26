@@ -8,7 +8,7 @@ Agent skills for working on [Hardhat 3](https://hardhat.org) projects following 
 npx skills add nomicfoundation/hardhat-skills
 ```
 
-This launches an interactive CLI that walks you through installing the Hardhat skills for your agent. For instance, you can install into your current project (as opposed to globally) and specifically for Claude, which writes the skill files into `.claude/skills/` at the repository root.
+This launches an interactive CLI that walks you through installing Hardhat skills for your agent. For instance, you can install into your current project (as opposed to globally) and specifically for Claude, which writes the skill files into `.claude/skills/` at the repository root.
 
 ## Usage
 
@@ -24,7 +24,7 @@ The agent loads the instructions and structure from the installed skill file and
 
 ### hardhat
 
-The core skill for Hardhat 3 project. Load it whenever your agent is writing or modifying contracts, tests, or config. It teaches the agent:
+The core skill for Hardhat 3 projects. It provides context whenever your agent is writing or modifying contracts, tests, or config. It teaches the agent:
 
 - When to reach for Solidity tests vs. TypeScript tests, and how to run each layer.
 - `forge-std` cheatcodes and the Solidity test conventions Hardhat expects.
