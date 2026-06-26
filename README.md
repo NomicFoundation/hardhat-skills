@@ -8,23 +8,23 @@ Agent skills for working on [Hardhat 3](https://hardhat.org) projects following 
 npx skills add nomicfoundation/hardhat-skills
 ```
 
-This launches an interactive CLI that walks you through where to install. For instance, you can install into your current project (as opposed to globally) and specifically for Claude, which writes the skill files into `.claude/skills/` at the repository.
+This launches an interactive CLI that walks you through installing the Hardhat skills for your agent. For instance, you can install into your current project (as opposed to globally) and specifically for Claude, which writes the skill files into `.claude/skills/` at the repository root.
 
 ## Usage
 
-Once installed, each skill is available to your agents, for Claude it can invoked by name:
+Once installed, each skill is available to your agents. For Claude the skill can be invoked by name:
 
 ```
 /migrate-hardhat2-to-hardhat3
 ```
 
-Claude loads the instructions and structure from the installed skill file and uses them to drive the work e.g. for the migration skills, that means kicking off a step-by-step campaign to migrate the repo.
+The agent loads the instructions and structure from the installed skill file and uses them to drive the work e.g. for the migration skills, that means kicking off a step-by-step campaign to migrate the repo.
 
 ## Available Skills
 
 ### hardhat
 
-The core skill for any Hardhat 3 project. Load it whenever your agent is writing or modifying contracts, tests, or config. It teaches the agent:
+The core skill for Hardhat 3 project. Load it whenever your agent is writing or modifying contracts, tests, or config. It teaches the agent:
 
 - When to reach for Solidity tests vs. TypeScript tests, and how to run each layer.
 - `forge-std` cheatcodes and the Solidity test conventions Hardhat expects.
@@ -33,7 +33,7 @@ The core skill for any Hardhat 3 project. Load it whenever your agent is writing
 
 ### hardhat-toolbox-viem
 
-A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-viem`. On top of the core skill it adds information about:
+A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-viem`. It adds information about:
 
 - The viem clients exposed on `network.create()` (public, wallet, and test clients).
 - Typed contract interaction — `viem.deployContract`, `read`, `write`, and `getContractAt`.
@@ -41,7 +41,7 @@ A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-
 
 ### hardhat-toolbox-mocha-ethers
 
-A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-mocha-ethers`. On top of the core skill it adds information about:
+A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-mocha-ethers`. It adds information about:
 
 - The ethers helpers on `network.create()` (provider, signers, utilities).
 - Contract interaction via `ethers.deployContract`, calling functions, and `connect`.
@@ -50,7 +50,7 @@ A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-
 
 ### migrate-hardhat2-to-hardhat3
 
-Migrate a Hardhat 2 project to Hardhat 3. The agent will run through sequential phases, pausing at a user checkpoint after each:
+Migrate a Hardhat 2 project to Hardhat 3. The agent migrate the project by running through sequential phases, pausing at a user checkpoint after each:
 
 1. **Project setup** — `tsconfig.json` for ESM and the `package.json` Hardhat 2 → Hardhat 3 dependency swap.
 2. **Config** — rewrite `hardhat.config.ts` to the declarative `defineConfig` (plugins, networks, tasks, solidity, verify).
@@ -61,7 +61,7 @@ Migrate a Hardhat 2 project to Hardhat 3. The agent will run through sequential 
 
 ### migrate-foundry-to-hardhat
 
-Migrate a Solidity project from Foundry to Hardhat 3, getting compilation and Solidity tests passing while flagging any migration gaps. The agent will systematically work through the following steps in order:
+Migrate a Solidity project from Foundry to Hardhat 3. The agent will migrate the project by systematically working through the following steps in order:
 
 1. **Analyze** the Foundry project — `foundry.toml`, remappings, submodules, inline config, and scripts.
 2. **Add Hardhat** to the project with the detected package manager.
