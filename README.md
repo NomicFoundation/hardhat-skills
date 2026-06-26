@@ -24,20 +24,49 @@ Claude loads the instructions and structure from the installed skill file and us
 
 ### hardhat
 
-Core skill for any Hardhat 3 project. Covers testing (both Solidity & TS tests), cheatcodes, the `network.create()` connection API, `networkHelpers`, and more.
+The core skill for any Hardhat 3 project. Load it whenever your agent is writing or modifying contracts, tests, or config. It teaches the agent:
+
+- When to reach for Solidity tests vs. TypeScript tests, and how to run each layer.
+- `forge-std` cheatcodes and the Solidity test conventions Hardhat expects.
+- The `network.create()` connection API and `networkHelpers` (fixtures, time/block manipulation).
+- The compile-then-typecheck workflow that keeps contract changes and tests in sync.
 
 ### hardhat-toolbox-viem
 
-Companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-viem`. Covers the viem clients exposed on `network.create()`, contract interaction, and `viem.assertions`.
+A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-viem`. On top of the core skill it adds information about:
+
+- The viem clients exposed on `network.create()` (public, wallet, and test clients).
+- Typed contract interaction — `viem.deployContract`, `read`, `write`, and `getContractAt`.
+- `viem.assertions` for revert, event, and balance checks.
 
 ### hardhat-toolbox-mocha-ethers
 
-Companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-mocha-ethers`. Covers ethers helpers on `network.create()`, contract interaction, TypeChain-typed contract instances, and chai matchers.
+A companion to the `hardhat` skill for projects using `@nomicfoundation/hardhat-toolbox-mocha-ethers`. On top of the core skill it adds information about:
+
+- The ethers helpers on `network.create()` (provider, signers, utilities).
+- Contract interaction via `ethers.deployContract`, calling functions, and `connect`.
+- TypeChain-typed contract instances and the `hardhat build` workflow that generates them.
+- The chai matchers (`.to.emit`, `.to.be.revertedWith*`, `.to.changeEtherBalance(s)`).
 
 ### migrate-hardhat2-to-hardhat3
 
-Migrate a Hardhat 2 project to Hardhat 3, covering core changes (ESM, declarative config, hooks system, network connections), the plugin ecosystem (hardhat-verify, @openzeppelin/hardhat-upgrades, and others) and test migration.
+Migrate a Hardhat 2 project to Hardhat 3. The agent will run through sequential phases, pausing at a user checkpoint after each:
+
+1. **Project setup** — `tsconfig.json` for ESM and the `package.json` Hardhat 2 → Hardhat 3 dependency swap.
+2. **Config** — rewrite `hardhat.config.ts` to the declarative `defineConfig` (plugins, networks, tasks, solidity, verify).
+3. **Solidity tests** — migrate `.t.sol` files to Hardhat 3 conventions.
+4. **Source files** — convert `.ts`/`.js` sources CJS→ESM and update Hardhat 2 APIs to Hardhat 3 (plus TypeChain import fixes).
+5. **Test fix-up** — get the TypeScript test suite passing under Hardhat 3.
+6. **Script validation** — run and fix the `package.json` scripts you select.
 
 ### migrate-foundry-to-hardhat
 
-Migrate a Foundry project to Hardhat 3, covering the build system and dependencies, Solidity test migration, coverage and gas reporting.
+Migrate a Solidity project from Foundry to Hardhat 3, getting compilation and Solidity tests passing while flagging any migration gaps. The agent will systematically work through the following steps in order:
+
+1. **Analyze** the Foundry project — `foundry.toml`, remappings, submodules, inline config, and scripts.
+2. **Add Hardhat** to the project with the detected package manager.
+3. **Create `hardhat.config.ts`**, mapping every `foundry.toml` section across.
+4. **Handle absolute imports** and remapping differences.
+5. **Compile** the contracts.
+6. **Run Solidity tests** and get them passing.
+7. **Migration report** — migration gaps and a Foundry cleanup checklist (originals are preserved, not deleted).
