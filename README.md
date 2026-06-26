@@ -8,6 +8,18 @@ Agent skills for working on [Hardhat 3](https://hardhat.org) projects following 
 npx skills add nomicfoundation/hardhat-skills
 ```
 
+This launches an interactive CLI that walks you through where to install. For instance, you can install into your current project (as opposed to globally) and specifically for Claude, which writes the skill files into `.claude/skills/` at the repository.
+
+## Usage
+
+Once installed, each skill is available to your agents, for Claude it can invoked by name:
+
+```
+/migrate-hardhat2-to-hardhat3
+```
+
+Claude loads the instructions and structure from the installed skill file and uses them to drive the work e.g. for the migration skills, that means kicking off a step-by-step campaign to migrate the repo.
+
 ## Available Skills
 
 ### hardhat
