@@ -23,7 +23,7 @@ Run each phase by following its phase guide. Each ends with a gate; the checklis
 Creates `.env` from templates, updates `tsconfig.json` for ESM, converts `package.json` (ESM flag, V2→V3 dependency swap, scripts).
 
 - [ ] Phase reported all gates passed
-- [ ] `npx hardhat --version` runs and prints a `3.x` version (e.g. `3.9.0`)
+- [ ] `npx hardhat --version` runs and prints a `3.x` version (e.g. `3.13.0`)
 - [ ] Checkpoint commit: `[CHECK] HH3 project setup: env, tsconfig, package.json`
 
 ### Phase 2 — Config → [phase guide](references/phase-2-config/phase.md)

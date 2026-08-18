@@ -96,7 +96,7 @@ Use this table to decide what to do with each V2 dependency. Packages marked "Re
 | `hardhat-contract-sizer` | Community port | Remove the V2 package; if sizing is needed, install `@solidstate/hardhat-contract-sizer` (the original author's HH3 port, peer `hardhat ^3.8.0`) |
 | `hardhat-deploy` (wighawag) | v2.x available | Remove — if used, reinstall `hardhat-deploy@latest` (v2.x, rocketh rewrite); see note below |
 | `@openzeppelin/hardhat-upgrades` | V3 available (v4+) | Reinstall `@openzeppelin/hardhat-upgrades@^4` — see note below |
-| `solidity-coverage` | Built-in | Remove — use `hardhat test --coverage` instead |
+| `solidity-coverage` | Built-in | Remove — use `hardhat test --coverage` instead; a `.solcover.js` is migrated in the config phase ([hardhat-config-migration.md](../phase-2-config/hardhat-config-migration.md) § "Coverage") |
 | `@typechain/hardhat`, `typechain` | Replaced | Remove — mocha-ethers toolbox bundles `@nomicfoundation/hardhat-typechain`; viem toolbox uses `@nomicfoundation/hardhat-viem` instead |
 | `hardhat-docgen` / `solidity-docgen` | No V3 port | Remove — no replacement yet, note the gap for the user |
 | `@nomiclabs/hardhat-etherscan` | Deprecated | Remove — replaced by `@nomicfoundation/hardhat-verify` (bundled by toolbox) |

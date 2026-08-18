@@ -17,6 +17,7 @@ Always run individual files with `npx hardhat test {filePath}`. Don't use `packa
 
 - `hardhat compile` → `hardhat build` (prefer `build`; `compile` still works as an alias, so existing invocations don't break)
 - `--parallel` flag removed — to keep parallel execution, set `test: { mocha: { parallel: true } }` in `hardhat.config.ts` instead (parallel testing is still supported)
+- Test-name filtering: `hardhat test --grep <pattern>`, plus `--grep-exclude <pattern>` (requires `hardhat >= 3.12.0`) as the replacement for Mocha's `invert`. Both work for Mocha and Solidity tests, but **not** for the node:test runner (`--grep` is silently broken there by an upstream `node:test` bug)
 - Tracing via verbosity levels: `-vvv` (level 3, traces for failing txs), `-vvvv` (level 4, traces for all txs ≈ old `--trace`), `-vvvvv` (level 5 ≈ old `--fulltrace`)
 - `--gas-stats` is the built-in replacement for the `hardhat-gas-reporter` plugin; the plugin's `gasReporter` config and its `REPORT_GAS` env var no longer apply
 - Foundry-style Solidity tests run natively: `hardhat test solidity`

@@ -197,6 +197,7 @@ export default defineConfig({
 
 Key changes:
 
+- `process.env.X || "fallback"` becomes `configVariable("X", { default: "fallback" })` (requires `hardhat >= 3.13.0`). Use `default` only for non-secret values (URLs, flags) — leave secrets without one so a missing value fails loudly
 - Every network must have an explicit `type` (`"edr-simulated"` for local, `"http"` for remote)
 - `chainType` is optional — defaults to `"generic"`. Set it explicitly when needed (e.g., `"l1"` for Ethereum mainnet, `"op"` for Optimism)
 - `hre.network` no longer represents a single active network; you create connections explicitly via `hre.network.create()`
@@ -386,6 +387,18 @@ export default defineConfig({
 });
 ```
 
+### Coverage (`.solcover.js`)
+
+Coverage is built into V3 (`hardhat test --coverage`), so `solidity-coverage` and its `.solcover.js` are removed. If `.solcover.js` has `skipFiles`, carry the list into the config (requires `hardhat >= 3.9.0`), then delete `.solcover.js`:
+
+```ts
+coverage: {
+  skipFiles: ["contracts/mocks/**"],
+},
+```
+
+Entries are globs matched against project-relative paths — V2's `skipFiles` were relative to `contracts/`, so re-prefix them (e.g. `"mocks/"` → `"contracts/mocks/**"`). Other `.solcover.js` options have no V3 equivalent — flag any that exist to the user.
+
 ### Reduced fuzz/invariant runs (MANDATORY)
 
 **Always add this to the config**, regardless of whether the project currently has Solidity tests. It prevents slow fuzz/invariant runs from blocking migration validation. Production values should be restored after migration is stable.
@@ -458,6 +471,8 @@ npx hardhat --help
 ```
 
 Must exit without error and list the available tasks. If it fails (import resolution, config parse, plugin not found — e.g. `ERR_MODULE_NOT_FOUND` or "An unexpected error occurred"), the config is broken — fix and re-run.
+
+Since `hardhat >= 3.8.0`, a stderr warning about plugins that are imported but missing from the `plugins` array means the migration dropped a registration — add the listed plugins to `plugins: [...]` and re-run.
 
 ### 8c. Clean up
 
