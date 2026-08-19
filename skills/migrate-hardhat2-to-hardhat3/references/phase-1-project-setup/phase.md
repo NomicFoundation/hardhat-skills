@@ -23,4 +23,4 @@ Update `tsconfig.json` compiler options for ESM + V3. Reference: [tsconfig-migra
 Convert `package.json` to ESM, swap V2 dependencies for V3 equivalents, update scripts. Reference: [package-json-migration.md](package-json-migration.md).
 
 - [ ] `package.json` converted, dependencies installed
-- [ ] `npx hardhat --version` runs and prints a `3.x` version (e.g. `3.9.0`)
+- [ ] `npx hardhat --version` runs and prints version `3.13.0` or newer
