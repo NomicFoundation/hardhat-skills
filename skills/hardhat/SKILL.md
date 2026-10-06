@@ -1,6 +1,6 @@
 ---
 name: hardhat
-description: Use when working with Hardhat 3 projects — writing or modifying Solidity tests, TypeScript tests, or any code touching hardhat.config.ts, the `hardhat` import, or `network.create()`. Covers test-layer choice, forge-std cheatcodes, the network connection API, `networkHelpers`, and the compile-then-typecheck workflow. For toolbox-specific guidance (clients, contract calls, assertions), also load the matching `hardhat-toolbox-*` skill.
+description: Use when working with Hardhat 3 projects — writing or modifying Solidity tests, TypeScript tests, or any code touching hardhat.config.ts, the `hardhat` import, or `network.create()`. Covers test-layer choice, forge-std cheatcodes, the network connection API, `networkHelpers`, the compile-then-typecheck workflow, and speeding up slow builds (especially via-IR) with the slang-solx compiler. For toolbox-specific guidance (clients, contract calls, assertions), also load the matching `hardhat-toolbox-*` skill.
 metadata:
   package: "hardhat"
 ---
@@ -11,6 +11,67 @@ This skill covers Hardhat 3 itself. The toolbox layer (clients, contract interac
 
 - `@nomicfoundation/hardhat-toolbox-viem` → also load the **`hardhat-toolbox-viem`** skill.
 - `@nomicfoundation/hardhat-toolbox-mocha-ethers` → also load the **`hardhat-toolbox-mocha-ethers`** skill.
+
+> **Slow builds?** If `hardhat build` / `hardhat test` spend most of their time compiling — typically because the build profile uses `viaIR: true` or a heavy optimizer setting — switch development builds to the **slang-solx** compiler via `@nomicfoundation/hardhat-slang-solx`. Measured on a 137-file project: ~20 s with slang-solx vs ~160 s with solc + via-IR. See [Faster builds with slang-solx](#faster-builds-with-slang-solx-development-only).
+
+## Faster builds with slang-solx (development only)
+
+`slang-solx` is a Solidity compiler built on `solc` and LLVM (originally Matter Labs' `solx`, now maintained by Nomic Foundation). Compared to `solc` it compiles much faster, always emits LLVM-optimized bytecode, and gets rid of "stack too deep" errors. It is still under heavy development: use it for local iteration and tests, **never for production builds or deployments**. Docs: <https://hardhat.org/docs/cookbook/compiling-with-slang-solx>.
+
+**When to reach for it** — proactively suggest it when:
+
+- The profile used for development or `hardhat test` has `viaIR: true` and/or `optimizer.enabled: true`, and compile time dominates the edit–test loop. This is where the win is largest: the via-IR pipeline's Yul optimizer is what makes `solc` slow, and slang-solx bypasses it entirely.
+- Contracts hit "stack too deep" and via-IR was the only workaround. slang-solx resolves it by spilling to memory instead.
+- The default profile is already unoptimized legacy `solc`: expect roughly equal times, but slang-solx still hands tests optimized bytecode.
+
+Reference numbers (The Graph `horizon` package, 137 files, 12-core arm64, `hardhat build --force`):
+
+| Profile                                       | Compiler         | Wall time |
+| --------------------------------------------- | ---------------- | --------- |
+| `default` (no optimizer, legacy pipeline)     | solc 0.8.35      | ~15 s     |
+| `production` (`optimizer.runs: 100`, `viaIR`) | solc 0.8.35      | ~160 s    |
+| `slang-solx` (default `optimizer.mode: "1"`)  | slang-solx 0.1.8 | ~20 s     |
+
+**Setup.** Requires `hardhat >= 3.15`. Install `@nomicfoundation/hardhat-slang-solx` with the project's package manager, register the plugin, and add a Build Profile named `slang-solx`. Existing `default` / `production` profiles keep using `solc` untouched:
+
+```ts
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
+
+export default defineConfig({
+  plugins: [/* ...other plugins... */ hardhatSlangSolx],
+  solidity: {
+    profiles: {
+      default: {
+        /* existing solc config */
+      },
+      production: {
+        /* existing solc config */
+      },
+      "slang-solx": {
+        type: "slang-solx",
+        version: "0.8.34", // must be a Solidity version slang-solx supports
+        settings: { evmVersion: "cancun" }, // cancun | prague | osaka
+      },
+    },
+  },
+});
+```
+
+```bash
+npx hardhat build --build-profile slang-solx
+npx hardhat test  --build-profile slang-solx
+```
+
+Hardhat prints `Compiled N Solidity files with slang-solx X (Solidity 0.8.34)` — check that line to confirm the profile took effect.
+
+**Rules and gotchas** (each one was hit in practice):
+
+- **One Solidity version per release.** slang-solx 0.1.8 targets Solidity 0.8.34; every compiler with `type: "slang-solx"` must use a supported version or the build fails. Pragmas must admit that version: `^0.8.27` works, `0.8.28` or `^0.8.35` do not. Widening a pragma changes only the metadata hash under `solc`. If some files need an unsupported version, mix compilers in the same profile: `compilers: [{ type: "slang-solx", version: "0.8.34" }, { version: "0.8.20" }]` — only the `slang-solx`-typed entries use the new compiler.
+- **Mark inline assembly `("memory-safe")`.** slang-solx warns on every unmarked `assembly {}` block, and a contract that combines an unmarked block with a stack-too-deep situation fails with `runtime code LLVM IR generator: This contract cannot be compiled due to a combination of a memory-unsafe assembly block and a stack-too-deep error`. Check each flagged block against the Solidity memory-safety rules (only touches scratch space `0x00–0x3f`, allocated memory, or no memory at all) and, if it complies, change it to `assembly ("memory-safe") { ... }`. Never add the tag to a block that writes elsewhere.
+- **`viaIR` is a no-op here.** Setting `viaIR: true` in the slang-solx profile changes nothing but the metadata hash — don't copy it over from the solc profile. Optimization level is `settings.optimizer.mode`: `"1"` (default, fastest compile), `"2"`, `"3"` (best runtime), `"s"`, `"z"` (smallest). `settings.optimizer.enabled` only toggles the embedded solc front-end's legacy assembly optimizer.
+- **Profile guard.** `type: "slang-solx"` is only allowed in the profile named `slang-solx`; using it in `default` or `production` is a validation error unless the config sets `"slang-solx": { dangerouslyAllowSlangSolxInProduction: true }` at top level. Do not set this for anything that ships.
+- **Bytecode differs from solc's.** Gas reports, contract-size checks and bytecode-hash comparisons will not match the `solc` build. ABI and TypeChain/viem types are identical, so tests and typechecking are unaffected. Always run the real profile with `solc` before comparing gas or deploying.
+- **Large via-IR solc builds can OOM Hardhat.** If a `solc` + via-IR build dies with `JavaScript heap out of memory`, either raise the heap (`NODE_OPTIONS=--max-old-space-size=8192`) or move development builds to slang-solx.
 
 ## Test organization
 
@@ -148,5 +209,7 @@ Generated contract types are derived from the compiled ABI (viem in the viem too
 ```bash
 npx hardhat build && npx tsc --noEmit
 ```
+
+If the project has a `slang-solx` profile (see above), `npx hardhat build --build-profile slang-solx && npx tsc --noEmit` gives the same types much faster on via-IR projects — the ABI, and therefore the generated types, do not depend on the compiler.
 
 The compiler will catch wrong argument types, missing arguments, and invalid options (e.g. `value` on a non-payable function) before you even start the test runner. Make this a habit: it surfaces many mistakes faster than running the full test suite.
