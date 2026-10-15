@@ -12,7 +12,7 @@ This skill covers Hardhat 3 itself. The toolbox layer (clients, contract interac
 - `@nomicfoundation/hardhat-toolbox-viem` → also load the **`hardhat-toolbox-viem`** skill.
 - `@nomicfoundation/hardhat-toolbox-mocha-ethers` → also load the **`hardhat-toolbox-mocha-ethers`** skill.
 
-> **Slow builds?** If `hardhat build` / `hardhat test` spend most of their time compiling — typically because the build profile uses `viaIR: true` or a heavy optimizer setting — switch development builds to the **slang-solx** compiler via `@nomicfoundation/hardhat-slang-solx`. Measured on a 137-file project: ~20 s with slang-solx vs ~160 s with solc + via-IR. See [Faster builds with slang-solx](#faster-builds-with-slang-solx-development-only).
+> **Slow builds?** If `hardhat build` / `hardhat test` spend most of their time compiling — typically because the build profile uses `viaIR: true` or a heavy optimizer setting — switch development builds to the **slang-solx** compiler via `@nomicfoundation/hardhat-slang-solx`. See [Faster builds with slang-solx](#faster-builds-with-slang-solx-development-only).
 
 ## Faster builds with slang-solx (development only)
 
