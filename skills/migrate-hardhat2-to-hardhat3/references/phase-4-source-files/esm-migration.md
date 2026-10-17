@@ -141,7 +141,7 @@ export type { Foo } from "bar.js";            // type re-export from module
 
 ## 6. `__dirname` / `__filename`
 
-ESM does not provide these CJS globals. Since this migration targets Node.js v22.13+, use `import.meta.dirname` and `import.meta.filename` as direct inline replacements — no imports or helpers needed.
+ESM does not provide these CJS globals. Since this migration targets Node.js v22.18+, use `import.meta.dirname` and `import.meta.filename` as direct inline replacements — no imports or helpers needed.
 
 ```ts
 // Before

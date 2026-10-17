@@ -2,7 +2,7 @@
 
 Phase 1 of the V2→V3 migration. Follow [migration-conventions.md](../migration-conventions.md) first (rules, package-manager detection, gates, optional parallel execution).
 
-**Prerequisites:** Node.js v22.13.0+ (blocking — stop and tell the user if lower); a Hardhat V2 project with `hardhat` in `package.json`.
+**Prerequisites:** Node.js v22.18.0+ or v24.3.0+ (blocking — stop and tell the user if lower); a Hardhat V2 project with `hardhat` in `package.json`.
 
 Run these three steps in order. Each ends with a gate — run its checks in order, fix and re-run from the first on any failure.
 
