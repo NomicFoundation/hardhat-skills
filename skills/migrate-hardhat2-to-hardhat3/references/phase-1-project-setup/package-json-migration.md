@@ -2,13 +2,13 @@
 
 ## Prerequisites
 
-Hardhat V3 requires **Node.js v22.13.0 or later** (Hardhat 3.9.0 enforces this minimum at startup). Verify before starting:
+Hardhat V3 requires **Node.js v22.18.0 or later, or v24.3.0 or later on Node.js 24+** (Hardhat 3.21.0 enforces this minimum at startup). Verify before starting:
 
 ```bash
 node --version
 ```
 
-If the version is below v22.13.0, **stop and alert the user**. This is a blocking requirement — the migration cannot proceed until Node.js is upgraded.
+If the version is below v22.18.0, or a 24.x below v24.3.0, **stop and alert the user**. This is a blocking requirement — the migration cannot proceed until Node.js is upgraded.
 
 ### Detect the project's package manager
 
